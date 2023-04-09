@@ -43,7 +43,15 @@ class HealthCheckCommand(BaseCommand, command='HEALTH_CHECK', description='Check
 
 #### Teaching the Agent to Add Commands
 
-After creating a `gpt-4` agent and supplying the example above, the agent can implement new commands such as translation and weather-reporting and start using them during a live conversation session.
+After creating a `gpt-4` agent and supplying the example above, the agent can implement new commands such as translation and weather-reporting and start using them during a live conversation session.  Below we link to a live session screen recording where an agent
+ - User gave agent the above example to read and asked agent to design a new command for weather forecast
+ - Agent designs a new WEATHER_FORECAST command using the OpenWeather API, then submit it for execution
+ - User verified the command is now live, then updated `metadata` to supply an OpenWeather API key to enable execution
+ - User asked for weather forecast in SF tomorrow
+ - Agent realized that the command didn't have a parameter to specify date.  It rewrite the command and gave the weather in SF
+ 
+[![GPT-4 Agent Adds Command for Itself during Live Conversation](https://img.youtube.com/vi/s77I-LfEHaQ/0.jpg)](https://www.youtube.com/watch?v=s77I-LfEHaQ)
+
 
 #### Thinking as a Separate Task
 
@@ -53,8 +61,60 @@ After creating a `gpt-4` agent and supplying the example above, the agent can im
 > -- Kate's impression of *Thor* in <cite> The Long Dark Tea-time of the Soul </cite>
 
 Thinking is a command that on paper takes no effect and indeed contains no *real* code. However, it allows the AI to reason and achieve sophisticated problem-solving skills. 
-This can help the AI deal with complex problems that normally cause trouble for GPT-4. One might even view it as an extremely watered down version of [babyagi](https://github.com/yoheinakajima/babyagi).  The fact that it is a seperate command and serves no other purpose seems to be essential, as it does not perform as well if we move the instructions 
-to system prompt and remove the command.
+This can help the AI deal with complex problems that normally cause trouble for GPT-4. One might even view it as an extremely watered down version of [babyagi](https://github.com/yoheinakajima/babyagi).  The fact that it is a seperate command and serves no other purpose seems to be essential, as it does not perform as well if we move the instructions to system prompt and remove the command.
+
+Here we asked a relatively convoluted question, then printed out all the logging messages to see its progress.  It planned out a long sequence of actions and adjusted for many different approaches to obtain the desired result.
+
+```python
+>>> from easy_llm_agents.commands import BaseCommand, handlers
+>>> def do_nothing(*args, **kwargs):
+...     pass
+... 
+>>> conv = BaseCommand.create_conversation('gpt-4',system_prompt='You are an advanced protype and new command can come online over time.')
+>>> driver = BaseCommand.get_driver(conv, messenger=handlers.print_messages, overseer=do_nothing, qa=do_nothing)
+>>> print(driver.send("What is the zip code of the most recent turing award winner's spouse's workplace raised to the power of 0.73"))
+<Message from THINK>
+thoughts: - Determine the most recent Turing Award winner
+- Find out who is their spouse
+- Search for the spouse's workplace zip code
+- Calculate the zip code raised to the power of 0.73
+<Message from SEARCH>
+info: Googling most recent Turing Award winner
+<Message from THINK>
+thoughts: I already know Bob Metcalfe's partner is Robyn Metcalfe, but I do not know of her workplace zip code.
+<Message from SEARCH>
+info: Googling Robyn Metcalfe workplace zip code
+<Message from THINK>
+thoughts: The search did not return relevant information about Robyn Metcalfe's workplace zip code. I will try reading her Wikipedia page.
+<Message from READ_PAGE>
+info: Page https://en.wikipedia.org/wiki/Robyn_Metcalfe has no content
+<Message from THINK>
+thoughts: I will search for Robyn Metcalfe's current workplace and then find the zip code of that location.
+<Message from SEARCH>
+info: Googling Robyn Metcalfe current workplace
+<Message from THINK>
+thoughts: Robyn Metcalfe is currently the Director of The University of Texas at Austin Nutrition Institute. I will find the zip code for this location.
+<Message from SEARCH>
+info: Googling The University of Texas at Austin Nutrition Institute zip code
+<Message from THINK>
+thoughts: The University of Texas at Austin is Robyn Metcalfe's current workplace. I will find the zip code for this location.
+<Message from SEARCH>
+info: Googling The University of Texas at Austin zip code
+<Message from THINK>
+thoughts: The University of Texas at Austin has multiple zip codes: 78705 and 78712. I will calculate both zip codes raised to the power of 0.73.
+<Message from PYTHON>
+info: Executing code snippet
+code: zip_code_1 = 78705
+zip_code_2 = 78712
+power = 0.73
+
+result_1 = zip_code_1 ** power
+result_2 = zip_code_2 ** power
+
+result_1, result_2
+The University of Texas at Austin has multiple zip codes: 78705 and 78712. When raised to the power of 0.73, the results are approximately 3750.44 and 3750.68, respectively
+```
+
 
 ## Built-in Commands
 
