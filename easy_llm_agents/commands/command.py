@@ -168,7 +168,7 @@ Examples are for showing formats only.  Do not use any information within or dis
         cls.additional_context = additional_context
     
     @classmethod
-    def from_response(cls, response, overseer, messenger=None, metadata=None):
+    def from_response(cls, response, overseer, messenger=None, metadata=None, disable=()):
         """Construct task objects based on commands issued by the Agent
         
         Try to be as lenient as possible to make it easier on the AI
@@ -185,6 +185,8 @@ Examples are for showing formats only.  Do not use any information within or dis
         lines = text.split('\n') + ['']
         for i, line in enumerate(lines):
             for cmd in cls._registry or not cls._registry and i == len(lines) - 1:   # Check each registered command and see if we are invoking them
+                if cmd in disable:
+                    continue
                 if line.strip().startswith(f'!{cmd}') or i == len(lines) - 1:
                     if i:   # This is a new command.  add the current contents to task list
                         command_class = cls._registry[command]
@@ -258,7 +260,7 @@ Examples are for showing formats only.  Do not use any information within or dis
         return conversation 
 
     @classmethod
-    def driver(cls, conversation, overseer, qa, messenger=None, max_qa_rejections=2, max_ai_cycles=10):
+    def driver(cls, conversation, overseer, qa, messenger=None, max_qa_rejections=2, max_ai_cycles=10, disable=()):
         response = 'How can I help you?'
         human_input = ''
         task = None
@@ -279,7 +281,7 @@ Examples are for showing formats only.  Do not use any information within or dis
             for icycle in range(max_ai_cycles):
                 # Parse tasks
                 try:
-                    tasks = cls.from_response(llm_response, overseer=overseer, messenger=messenger, metadata=conversation.metadata)
+                    tasks = cls.from_response(llm_response, overseer=overseer, messenger=messenger, metadata=conversation.metadata, disable=disable)
                 except TaskRejected as e:
                     response = str(e)
                     continue
