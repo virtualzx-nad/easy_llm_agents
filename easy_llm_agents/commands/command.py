@@ -252,7 +252,6 @@ Examples are for showing formats only.  Do not use any information within or dis
         for cls in cls._registry.values():
             if cls.additional_context:
                 system_prompt += '\n' + cls.additional_context
-        system_prompt += '\n' + cls.generate_command_list()
         options = cls.default_options.copy()
         if model_options:
             options.update(model_options)
@@ -271,11 +270,11 @@ Examples are for showing formats only.  Do not use any information within or dis
             else:
                 qa_suggestion = ''
             if qa_suggestion:
-                llm_response = conversation.talk(qa_suggestion)
+                llm_response = conversation.talk(qa_suggestion, footnote=cls.generate_command_list())
                 rejections += 1
             else:
                 human_input = yield response
-                llm_response = conversation.talk(human_input)
+                llm_response = conversation.talk(human_input, footnote=cls.generate_command_list())
                 rejections = 0
             response = ''
             for icycle in range(max_ai_cycles):
@@ -302,7 +301,7 @@ Examples are for showing formats only.  Do not use any information within or dis
                 # nothing to send back to it.  now we got to eject to human
                 if not prompt:
                     break
-                llm_response = conversation.talk(prompt)
+                llm_response = conversation.talk(prompt, footnote=cls.generate_command_list())
             else:
                 print(f"<DRIVER> Max AI autopilot cycles reached. Ejecting to human control")     
 

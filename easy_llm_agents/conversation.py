@@ -19,7 +19,7 @@ class LLMConversation(object):
         user_persona="",  # 
         ai_persona="",    # What role the AI should play as
         summary='',       # summary of previous conversations
-        metadata=None,    # 
+        metadata=None,    # metadata attached to the conversation 
     ):
         """Create a conversation with the LLM
         
@@ -39,11 +39,12 @@ class LLMConversation(object):
         self.metadata = metadata or {}
         self.summary = summary
     
-    def talk(self, content):
+    def talk(self, content, footnote=None):
         """Talk to the model and return the results
         
         Args:
             content:   Text of the utterance of the user
+            footnote:  If present, a last system message before AI response that will not enter history
 
         Returns:
             The text response from the AI
@@ -56,7 +57,9 @@ class LLMConversation(object):
             system_prompt += '\nIn the entire conversation you act as ' + self.ai_persona + '\n Always speak in this role and never break character.\n'
         if self.summary:
             system_prompt += '\nSummary of previous conversations:\n' + self.summary
-        previous = self.history
+        previous = list(self.history)
+        if footnote:
+            previous += [{'role': 'system', 'content': footnote}]
 
         self._last_content = previous               # for debug only
         self._last_system_prompt = system_prompt    # for debug only

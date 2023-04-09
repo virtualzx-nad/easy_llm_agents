@@ -10,6 +10,12 @@ def permissive_overseer(command, status, content):
     print(f'<Permissive Overseer> {command} requested. "{status}". GRANTED.')
 
 
+def print_messages(*args, **kwargs):
+    print(f'<Message from {kwargs["command"]}>')
+    for key, value in kwargs.get('data', {}).items():
+        print(f'{key}: {value}')
+
+
 def absent_qa(question, answer):
     """The QA specialist is on vacation and has set their email to autorespond"""
     print('<Absent QA specialist> is on time-off. PASSED.')
