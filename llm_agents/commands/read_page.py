@@ -103,9 +103,8 @@ Optional instructions on what information to retrieve from page
                 text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)   # consolidate new lines
                 return text
 
-    @classmethod
     def summarize_text(self, text, description=""):
-        encoding = tiktoken.encoding_for_model(summarization_model)
+        encoding = tiktoken.encoding_for_model(self.summarization_model)
         lines = text.split('\n')
         total_tokens = 0
         included = []
