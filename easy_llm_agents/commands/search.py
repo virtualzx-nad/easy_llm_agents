@@ -20,6 +20,7 @@ class SearchCommand(BaseCommand, command='SEARCH', description='Search Goole and
             max_results = 10
         results = []
         for search in searches:
+            self.send_message(info=f'Googling {search}')
             results.extend(self.google_search(search, max_results=max_results))
         if not results:
             return 'No results returned from google search'

@@ -57,16 +57,17 @@ Optional instructions on what information to retrieve from page
         output = ''
         # Now go and summarize each page requested
         for url, description in url_dict.items():
+            self.send_message(info=f'Extract and summarize {url} with instruction `{description}`')
             if len(url_dict) > 1:
                 output += 'Page ' + url + ':'
             text = self.extract_page(url)
             if text:
-                self.send_message(info=f'Summarizing {url} with instruction `{description}`')
                 summary = self.summarize_text(text, description)
                 output += summary + '\n'
                 success += 1
             else:
                 output += "Unable to extract. The page might be dynamic or restricted; try a different URL.\n\n"
+                self.send_message(info=f'Page {url} has no content')
         if not success:
             output += 'Please try different URLs or a different command.'
         return output
