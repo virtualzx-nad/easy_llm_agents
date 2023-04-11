@@ -51,13 +51,11 @@ def exec_and_return(script, globals=None, locals=None):
 
 class PythonCommand(BaseCommand,
     command='PYTHON',
-    description='Provide Python code to excute in order to perform complex tasks or computations. '
-        "Printouts will be given to you, if the script executed successfully, and the error info otherwise. "
-        "If you would like to create a file for the user, create it in the current folder and it will be delivered. "
-        "If you would like to keep the source code in a file to send to the user (as opposed to an assistant), add the following line into your response: `KEEP_FILE filename_to_be_saved.py`; otherwise the user will not see the source code. "
-        "If you need the value of an variable, add the line into your response: `RETURN_VARIABLE variable_name`.  "
-        "DO NOT refer to the path of the generated file in any following conversations as it will be moved.",
-    additional_context='You cannot directly execute Python code, but you can submit them to be executed by other parties.'
+    description='Submit Python code that perform complex tasks or computations. '
+        "Printouts or error messages will be returned to you. "
+        "Files created in current folder will be delivered to the user. "
+        "To send the source code to the user as file, add this to response: `KEEP_FILE filename_to_be_saved.py`; otherwise the user will not see the code. "
+        "To get variable values, add this to response: `RETURN_VARIABLE variable_name`.  "
 ):
     def generate_prompt(self):
         """Take the python code it write and run them"""

@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from .command import BaseCommand
 
 
-class SearchCommand(BaseCommand, command='SEARCH', description='Search Goole and the top results along with URLs will be returned to you.'):
+class SearchCommand(BaseCommand, command='SEARCH', description='Search Goole to get top results and URLs. Always THINK about the best search words first.'):
     """Runs Google search and obtain the first page of the result and urls
     
     The AI sometimes provide multiple lines to intend to search multiple items at the same time.  We try and honor that
@@ -17,13 +17,13 @@ class SearchCommand(BaseCommand, command='SEARCH', description='Search Goole and
         if len(searches) > 1:
             max_results = 3
         else:
-            max_results = 10
+            max_results = 6
         results = []
         for search in searches:
             self.send_message(info=f'Googling {search}')
             results.extend(self.google_search(search, max_results=max_results))
         if not results:
-            return 'No results returned from google search'
+            return 'No results. Try to divide complex searches into many incremental ones.'
         return '\n'.join(f"Title: {result['title']}\nURLs: {result['links']}\nText: {result['content']}\n" for result in results)
 
     @staticmethod

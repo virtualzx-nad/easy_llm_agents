@@ -28,9 +28,9 @@ def get_chatgpt_qa(model='gpt-3.5-turbo'):
         print(f'<GPT QA ({model})> will now deliberate on the performance of assistants.')
         system = 'You are helpful trainer for assistants.'
         prompt = f"""Read the following conversation and determine if the assistant properly addressed the user's request and if they did not, give them some creative suggestions on what they should do before they answer the questions to be able to provide better results.   The assistant can do a wide range of tasks, including but not limited to writing python code to do computations or access any public API, doing Google searches, reading articles online, or searching for job opening or people's employment data from database. The assistant cannot access resources that require authentication, use any APIs that require keys or view websites that require captcha or are fully dynamic. You should also provide any knowledge to help the assistant answer the request.  
-        
+    Do you repeat steps the assistant has already taken in your suggestions.  Only include future steps to get the the answer. 
     Note that any answer involving having the user accessing a webpage or API should not be suggested and the assistant should do so themselves.
- 
+    Do not doubt the assisant's ability to obtain information as they may have information not available to you. 
     Start your answer with `YES` or `NO`, then give a short summary for the reason of your decision for bookkeeping purposes. If the decision is NO, then starting on the next line give your suggestions to the assistant.
 
 An example, for this conversation ```
@@ -78,3 +78,8 @@ A: {answer}
         else:
             print(f'<GPT QA ({model})> accepted the answer: {reason}')
     return chatgpt_qa
+
+
+def do_nothing(*args, **kwargs):
+    """This function takes any arguments and does nothing"""
+    pass

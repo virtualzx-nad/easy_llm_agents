@@ -20,7 +20,7 @@ from .command import BaseCommand
 
 class ReadPageCommand(BaseCommand,
     command='READ_PAGE',
-    description=f'Obtain info from a web page.  If you need specific information, please describe in the line following the URL; otherwise a summary will be returned.  Feel free to first ask for a general outline then request for more specific details from the same source.',
+    description=f'Obtain info from a web page.  Describe infomation needed in the line following the URL.' 
 ):
     summarization_model = 'gpt-3.5-turbo'
     summary_size = 200
@@ -30,6 +30,7 @@ class ReadPageCommand(BaseCommand,
         lines = self.content.split('\n')
         url_dict = {}
         current_url = None
+        current_description = ''
         for line in lines:
             # clean up the line
             line = line.strip()
@@ -70,7 +71,7 @@ Optional instructions on what information to retrieve from page
                 self.send_message(info=f'Page {url} has no content')
         if not success:
             output += 'Please try different URLs or a different command.'
-        return output
+        return output.strip() or 'Did not find any content. Try a different page'
 
     @staticmethod
     def extract_page(url):
