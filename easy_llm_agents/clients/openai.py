@@ -70,6 +70,11 @@ def get_openai_completion(
         print('APIError from OpenAI.  The server encountered problems.  Waiting 10s to retry. ')
         time.sleep(10)
         response = openai.ChatCompletion.create(model=model, **options).to_dict()
+    except openai.error.APIConnectionError as e:
+        print('APIConnectionError from OpenAI.  Connection was reset.  Waiting 10s to retry. ')
+        time.sleep(10)
+        response = openai.ChatCompletion.create(model=model, **options).to_dict()
+
     if text_only:
         return response['choices'][0]['message']['content']
     else:

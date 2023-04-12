@@ -14,11 +14,11 @@ from .command import BaseCommand
 
 class ReadPageCommand(BaseCommand,
     command='read_page',
-    description=f'Obtain info from a web page.  Describe infomation needed in the line following the URL. Note that you cannot read image or PDF.' 
+    description=f'Obtain info from a page based on URL. Describe what to extract with the description field. If you need original text, explicitly say verbatim in the description; otherwise returns will be summarized. ' 
 ):
     summarization_model = 'gpt-3.5-turbo'
-    summary_size = 200
-    max_tokens = 2500
+    summary_size = 600
+    max_tokens = 2000
 
     def generate_prompt(self):
         if not isinstance(self.content, list):
@@ -50,14 +50,6 @@ class ReadPageCommand(BaseCommand,
     @staticmethod
     def extract_page(url):
         """Extract content of a page from its URL, preserving new lines and hyperlinks"""
-        # if url.startswith('https://docs.google.com/'):
-        #     doc_id = url.split("/")[5]
-        #     contents = get_doc_contents(doc_id)
-        #     return contents_to_plain_text(contents)
-        # if url.startswith('https://drive.google.com/'):
-        #     file_id = url.split("/")[5]
-        #     contents = get_file_contents(file_id, return_text=True)
-        #     return contents
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'
         }
@@ -107,20 +99,18 @@ class ReadPageCommand(BaseCommand,
         self.send_message(info=f'Total lines: {len(lines)-1}. Tokens: {sum(toks)}. Summarizations~ {int(math.ceil(sum(toks)/2000))}')
         for i, (line, tokens) in enumerate(zip(lines, toks)):
             line = line.strip()
-            if not line:
-                continue
             if total_tokens + tokens <= self.max_tokens and i < len(lines) - 1:
-                included.append(line)
-                total_tokens += tokens
+                if line:
+                    included.append(line)
+                    total_tokens += tokens
             else:
                 summary_text = (
-                    "Please extract information that fits this description or instruction from the text below."
-                    f"Keep your response within {self.summary_size} tokens. Make sure to keep any names, key figures, important details, requirements, responsibilities, asks or preferences.  Keep links to important items in the result.\n"
-                    f"Description:\n`{description}`\n"
+                    f"Extract from text below based on this instruction `{description}`. "
+                    f"Keep your response within {self.summary_size} tokens.  Return verbatim text or sentence if the instruction asks for a specific section.  Keep all formatting and indentation in code blocks.  \n"
                     "Text:\n```" + current_summary + '\n' +  '\n'.join(included) + "```"
                 )
                 self.send_message(info=f'Performing summarization for line #{start+1} to {i} with approx {int(total_tokens)} tokens in text')
-                current_summary = get_completion(summary_text, model=self.summarization_model, max_tokens=int(self.summary_size*3), text_only=True)
+                current_summary = get_completion(summary_text, model=self.summarization_model, max_tokens=int(self.summary_size*2), text_only=True)
                 current_summary = current_summary.strip('```')
                 included = [line]
                 start = i
