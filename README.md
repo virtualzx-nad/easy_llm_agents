@@ -20,9 +20,8 @@ we did observe some agents installing GPT-2 and GPT-J on local systems through `
 We therefore strongly recommend that agents not to be created on machines with direct access to GPUs or giving direct access to LLM APIs. 
 If you give access to any production system, please make sure to verify its safety by properly implement an Overseer.
 
-## Examples
 
-#### How to implement a new command
+## How to implement a new command
 
 You can create a command to perform a health check of your system like this:
 ```python
@@ -57,11 +56,13 @@ These correspond to the actual command that you issue like this
 }
 ```
 
+## More interesting Examples
+
 #### Teaching the Agent to Add Commands
 
 After creating a `gpt-4` agent and supplying the example above, the agent can implement new commands such as translation and weather-reporting and start using them during a live conversation session.  Below we link to a live session screen recording where an agent
  - User gave agent the above example to read and asked agent to design a new command for weather forecast
- - Agent designs a new WEATHER_FORECAST command using the OpenWeather API, then submit it for execution
+ - Agent designs a new `weather_forecast` command using the OpenWeather API, then submit it for execution
  - User verified the command is now live, then updated `metadata` to supply an OpenWeather API key to enable execution
  - User asked for weather forecast in SF tomorrow
  - Agent realized that the command didn't have a parameter to specify date.  It rewrite the command and gave the weather in SF
@@ -136,11 +137,11 @@ The University of Texas at Austin has multiple zip codes: 78705 and 78712. When 
 
 The following basic commands are included by default and can be disabled as needed:
 
-- **Ask** and **Answer**: Basic conversation ability
-- **Search**: Perform searches through Google, retrieving top results and their URLs
-- **Page reading**: Read a page and extract specific information or a general summary using a separate `gpt-3.5-turbo` model for rolling summarizations
-- **Think**: The agent can think to itself, writing down its thoughts without taking actions or sharing its contents with users
-- **Python**: Write Python code and ask for any print-outs and/or the final value to be returned, with source code or files created available for the driving program to keep
+- **answer**: Basic conversation ability
+- **search**: Perform searches through Google, retrieving top results and their URLs
+- **read_page**: Read a page and extract specific information or a general summary using a separate `gpt-3.5-turbo` model for rolling summarizations
+- **self_note**: The agent can think to itself, writing down its thoughts without taking actions or sharing its contents with users
+- **python**: Write Python code and ask for any print-outs and/or the final value to be returned, with source code or files created available for the driving program to keep
 
 ## Custom Hooks for Monitoring, Control, and Interaction
 
