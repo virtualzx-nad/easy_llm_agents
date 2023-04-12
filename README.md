@@ -44,7 +44,9 @@ class HealthCheckCommand(
             return 'Invalid return from health check API'
 ```
 `command` and `description` are required arguments during class initialization.
-Remember to explain fields that should be passed in content in the `description` argument.  When you define or redefine a subclass of BaseCommand, the commands will automatically update and their behavior will be modified.
+Remember to explain fields that should be passed in content in the `description` argument.  When you define or redefine a subclass of BaseCommand, the commands will automatically update and their behavior will be modified.  
+
+The return value of `generate_prompt()` will be given to the agent. Due to token limit, please keep the return as concise as possible.
 
 When impementing a command, the following data will be available in a command instance:
 - self.metadata:  dictionary containing info such as API keys, AWS secrets, Google application credientials, user private data etc
