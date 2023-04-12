@@ -35,11 +35,11 @@ class HealthCheckCommand(
     def generate_prompt(self):
         import requests   # imports should be lazy
 
-        resp = requests.post(f'https://mycompany.com/frog/_health?secret={self.metadata["frog_api_secret"]}', json=self.content['data'])
+        resp = requests.post(f'https://mycompany.com/frog/_health?secret={self.metadata["frog_api_secret"]}', json=self.content[0]['data'])
         if not resp.ok:
             return 'Health check failed'
         try:
-            return resp.json()[self.content['status_key']]
+            return resp.json()[self.content[0]['status_key']]
         except:
             return 'Invalid return from health check API'
 ```
@@ -51,17 +51,17 @@ The return value of `generate_prompt()` will be given to the agent. Due to token
 When impementing a command, the following data will be available in a command instance:
 - self.metadata:  dictionary containing info such as API keys, AWS secrets, Google application credientials, user private data etc
 - self.summary:   The summary sentence passed to the command
-- self.content:   The content body of the command
+- self.content:   The content body of the command. Usually a list of dicts, in case a command has multiple actions.  In case you are only doing one thing, just use the first element.
 
 These correspond to the actual command that you issue like this
 ```python
 {
    "command": "health_check",
    "summary": <summary here>,
-   "content": {
-     "field1": <data here>,
-     "field2": <data here>
-   }
+   "content": [
+     {"field1": <data here>, "field2": <data here>},
+     ...
+   ]
 }
 ```
 
