@@ -30,7 +30,7 @@ from easy_llm_agents.commands import BaseCommand
 class HealthCheckCommand(
     BaseCommand,
     command='health_check',
-    description="Check the health status of the frog service. The following should be supplied in context:\n    -`data`: json parameters\n\n    - `status_key`: which key to extract from api"
+    description="Check the health status of the frog service. The following should be supplied in content:\n    -`data`: json parameters\n\n    - `status_key`: which key to extract from api"
 ):
     def generate_prompt(self):
         import requests   # imports should be lazy
@@ -39,12 +39,12 @@ class HealthCheckCommand(
         if not resp.ok:
             return 'Health check failed'
         try:
-            return resp.json()[self.context['status_key']]
+            return resp.json()[self.content['status_key']]
         except:
             return 'Invalid return from health check API'
 ```
 `command` and `description` are required arguments during class initialization.
-Remember to explain fields that should be passed in context in the `description` argument.  When you define or redefine a subclass of BaseCommand, the commands will automatically update and their behavior will be modified.
+Remember to explain fields that should be passed in content in the `description` argument.  When you define or redefine a subclass of BaseCommand, the commands will automatically update and their behavior will be modified.
 
 When impementing a command, the following data will be available in a command instance:
 - self.metadata:  dictionary containing info such as API keys, AWS secrets, Google application credientials, user private data etc
