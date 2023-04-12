@@ -27,7 +27,14 @@ You can create a command to perform a health check of your system like this:
 ```python
 from easy_llm_agents.commands import BaseCommand
 
-class HealthCheckCommand(BaseCommand, command='health_check', description='Check the health status of the frog service. supply parameters in `data` field of the command content.'):
+class HealthCheckCommand(
+    BaseCommand,
+    command='health_check',
+    description="""Check the health status of the frog service. The following should be supplied in context:
+       - data: json parameters
+       - status_key: which key to extract from api
+    """
+):
     def generate_prompt(self):
         import requests   # imports should be lazy
 
@@ -35,12 +42,12 @@ class HealthCheckCommand(BaseCommand, command='health_check', description='Check
         if not resp.ok:
             return 'Health check failed'
         try:
-            return resp.json()['status']
+            return resp.json()[self.context['status_key']]
         except:
             return 'Invalid return from health check API'
 ```
-
-The `description` field explain how data are passed to command.  When you define or redefine a subclass of BaseCommand, the commands will automatically update and their behavior will be modified.
+`command` and `description` are required arguments during class initialization.
+Remember to explain fields that should be passed in context in the `description` argument.  When you define or redefine a subclass of BaseCommand, the commands will automatically update and their behavior will be modified.
 
 When impementing a command, the following data will be available in a command instance:
 - self.metadata:  dictionary containing info such as API keys, AWS secrets, Google application credientials, user private data etc
@@ -60,12 +67,7 @@ These correspond to the actual command that you issue like this
 
 #### Teaching the Agent to Add Commands
 
-After creating a `gpt-4` agent and supplying the example above, the agent can implement new commands such as translation and weather-reporting and start using them during a live conversation session.  Below we link to a live session screen recording where an agent
- - User gave agent the above example to read and asked agent to design a new command for weather forecast
- - Agent designs a new `weather_forecast` command using the OpenWeather API, then submit it for execution
- - User verified the command is now live, then updated `metadata` to supply an OpenWeather API key to enable execution
- - User asked for weather forecast in SF tomorrow
- - Agent realized that the command didn't have a parameter to specify date.  It rewrite the command and gave the weather in SF
+After creating a `gpt-4` agent, we ask it to read the above section of this file, then asked it to create new commands.  It is able to create, deploy, then debug and execute the new command.
  
 [![GPT-4 Agent Adds Command for Itself during Live Conversation](https://img.youtube.com/vi/s77I-LfEHaQ/0.jpg)](https://www.youtube.com/watch?v=s77I-LfEHaQ)
 
@@ -82,55 +84,8 @@ This can help the AI deal with complex problems that normally cause trouble for 
 
 Here we asked a relatively convoluted question, then printed out all the logging messages to see its progress.  It planned out a long sequence of actions and adjusted for many different approaches to obtain the desired result.
 
-```python
->>> from easy_llm_agents.commands import BaseCommand, handlers
->>> def do_nothing(*args, **kwargs):
-...     pass
-... 
->>> conv = BaseCommand.create_conversation('gpt-4',system_prompt='You are an advanced protype and new command can come online over time.')
->>> driver = BaseCommand.get_driver(conv, messenger=handlers.print_messages, overseer=do_nothing, qa=do_nothing)
->>> print(driver.send("What is the zip code of the most recent turing award winner's spouse's workplace raised to the power of 0.73"))
-<Message from THINK>
-thoughts: - Determine the most recent Turing Award winner
-- Find out who is their spouse
-- Search for the spouse's workplace zip code
-- Calculate the zip code raised to the power of 0.73
-<Message from SEARCH>
-info: Googling most recent Turing Award winner
-<Message from THINK>
-thoughts: I already know Bob Metcalfe's partner is Robyn Metcalfe, but I do not know of her workplace zip code.
-<Message from SEARCH>
-info: Googling Robyn Metcalfe workplace zip code
-<Message from THINK>
-thoughts: The search did not return relevant information about Robyn Metcalfe's workplace zip code. I will try reading her Wikipedia page.
-<Message from READ_PAGE>
-info: Page https://en.wikipedia.org/wiki/Robyn_Metcalfe has no content
-<Message from THINK>
-thoughts: I will search for Robyn Metcalfe's current workplace and then find the zip code of that location.
-<Message from SEARCH>
-info: Googling Robyn Metcalfe current workplace
-<Message from THINK>
-thoughts: Robyn Metcalfe is currently the Director of The University of Texas at Austin Nutrition Institute. I will find the zip code for this location.
-<Message from SEARCH>
-info: Googling The University of Texas at Austin Nutrition Institute zip code
-<Message from THINK>
-thoughts: The University of Texas at Austin is Robyn Metcalfe's current workplace. I will find the zip code for this location.
-<Message from SEARCH>
-info: Googling The University of Texas at Austin zip code
-<Message from THINK>
-thoughts: The University of Texas at Austin has multiple zip codes: 78705 and 78712. I will calculate both zip codes raised to the power of 0.73.
-<Message from PYTHON>
-info: Executing code snippet
-code: zip_code_1 = 78705
-zip_code_2 = 78712
-power = 0.73
+[<img width="1086" alt="image" src="https://user-images.githubusercontent.com/3173151/231362669-2dfd58de-4e79-4e05-8f96-18b46a65b1e4.png">](./examples/convoluted_question.ipynb)
 
-result_1 = zip_code_1 ** power
-result_2 = zip_code_2 ** power
-
-result_1, result_2
-The University of Texas at Austin has multiple zip codes: 78705 and 78712. When raised to the power of 0.73, the results are approximately 3750.44 and 3750.68, respectively
-```
 
 
 ## Built-in Commands
