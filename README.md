@@ -30,10 +30,7 @@ from easy_llm_agents.commands import BaseCommand
 class HealthCheckCommand(
     BaseCommand,
     command='health_check',
-    description="""Check the health status of the frog service. The following should be supplied in context:
-       - data: json parameters
-       - status_key: which key to extract from api
-    """
+    description="Check the health status of the frog service. The following should be supplied in context:\n    -`data`: json parameters\n\n    - `status_key`: which key to extract from api"
 ):
     def generate_prompt(self):
         import requests   # imports should be lazy
@@ -52,14 +49,17 @@ Remember to explain fields that should be passed in context in the `description`
 When impementing a command, the following data will be available in a command instance:
 - self.metadata:  dictionary containing info such as API keys, AWS secrets, Google application credientials, user private data etc
 - self.summary:   The summary sentence passed to the command
-- self.content:   The content body of the command in plain text
+- self.content:   The content body of the command
 
 These correspond to the actual command that you issue like this
 ```python
 {
-   'command': 'health_check',
-   'summary': <summary here>,
-   'content': {'data': <data here>}
+   "command": "health_check",
+   "summary": <summary here>,
+   "content": {
+     "field1": <data here>,
+     "field2": <data here>
+   }
 }
 ```
 
