@@ -22,23 +22,39 @@ If you give access to any production system, please make sure to verify its safe
 
 ## Examples
 
-#### Adding Health Check Command
+#### How to implement a new command
 
-Teach an agent to perform a health check of your system with this example:
-
+You can create a command to perform a health check of your system like this:
 ```python
-import requests
-from easy_llm_agents.command import BaseCommand
+from easy_llm_agents.commands import BaseCommand
 
-class HealthCheckCommand(BaseCommand, command='HEALTH_CHECK', description='Check the health status of the frog service'):
+class HealthCheckCommand(BaseCommand, command='health_check', description='Check the health status of the frog service. supply parameters in `data` field of the command content.'):
     def generate_prompt(self):
-        resp = requests.get('https://mycompany.com/frog/_health')
+        import requests   # imports should be lazy
+
+        resp = requests.post(f'https://mycompany.com/frog/_health?secret={self.metadata["frog_api_secret"]}', json=self.content['data'])
         if not resp.ok:
             return 'Health check failed'
         try:
             return resp.json()['status']
         except:
             return 'Invalid return from health check API'
+```
+
+The `description` field explain how data are passed to command.  When you define or redefine a subclass of BaseCommand, the commands will automatically update and their behavior will be modified.
+
+When impementing a command, the following data will be available in a command instance:
+- self.metadata:  dictionary containing info such as API keys, AWS secrets, Google application credientials, user private data etc
+- self.summary:   The summary sentence passed to the command
+- self.content:   The content body of the command in plain text
+
+These correspond to the actual command that you issue like this
+```python
+{
+   'command': 'health_check',
+   'summary': <summary here>,
+   'content': {'data': <data here>}
+}
 ```
 
 #### Teaching the Agent to Add Commands

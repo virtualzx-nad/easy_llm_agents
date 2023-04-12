@@ -5,6 +5,8 @@ import os
 import ast
 import sys
 import uuid
+import json
+import time
 import tempfile
 import traceback as tb
 
@@ -50,75 +52,60 @@ def exec_and_return(script, globals=None, locals=None):
 
 
 class PythonCommand(BaseCommand,
-    command='PYTHON',
-    description='Submit Python code that perform complex tasks or computations. '
-        "Printouts or error messages will be returned to you. "
-        "Files created in current folder will be delivered to the user. "
-        "To send the source code to the user as file, add this to response: `KEEP_FILE filename_to_be_saved.py`; otherwise the user will not see the code. "
-        "To get variable values, add this to response: `RETURN_VARIABLE variable_name`.  "
+    command='python',
+    description="""Submit Python code that perform complex tasks or computations. Printouts or error messages will be returned to you. The content must be a Python dictionary with fields:
+    - code: Required field.  A string containing the code snippet
+    - request_file: Optional. Request files to be supplied; 
+    - save_as:  Optional. String. Filename for the code to be saved as; do not include path.
+    - return_variables:  Optional. List of variable names that you need to be returned after the code is executed
+    - packages: Optional. A list of packages that need to be installed
+    - execute: Optional.  If False, the code will be saved but not executed. Default is True.
+    - note: any important messages. If you are unable to directly execute, put a message in `note`, code that you cannot execute in the `code` field, and do not return an `execute` field.
+"""
 ):
     def generate_prompt(self):
         """Take the python code it write and run them"""
         run_id = str(uuid.uuid4())
         stdout_buffer = io.StringIO()
-        save_vars = []
-        for line in self.content.split('\n'):
-            if line.startswith('KEEP_FILE ') or line.startswith('!KEEP_FILE '):
-                keep_file = line.split('KEEP_FILE', 1)[-1].strip()
-                self.send_message(info='Agent requested source code to be exported')
-            if line.startswith('RETURN_VARIABLE ') or line.startswith('!RETURN_VARIABLE '):
-                save_vars.append(line.split('RETURN_VARIABLE ', 1)[-1].strip())
-        else:
-            keep_file = None
-        code_string = self.content
-        if '```' in code_string:
-            parts = code_string.split('```')
-            if len(parts) > 1:
-                code_string = parts[1]
-            else:
-                code_string = parts[0]
-            if code_string.startswith('python\n'):   # it is using markdown with language specified
-                code_string = code_string[len('python\n'):]
-        lines = code_string.split('\n')
-        keep = []
-        for line in lines:
-            if line.startswith('!pip install '):
-                pkg = line[len('!pip install '):].strip()
-                self.send_message(info=f'AI requested installation of {pkg}.', package=pkg)
-            elif not any(line.startswith(s) for s in ['KEEP_FILE ', '!KEEP_FILE ', 'RETURN_VARIABLE ', '!RETURN_VARIABLE ']):
-                keep.append(line)
-        code_string = '\n'.join(keep)
+        run_spec = self.content
+        for pkg in run_spec.get('packages', []):
+            self.send_message(action='install_package', package=pkg)
+        if run_spec.get('note'):
+            self.send_message(info=run_spec['note'])
+        code_string = run_spec.get('code')
+        if not code_string:
+            return 'Source code not found.  Make sure to provide source code even if you believe you cannot execute it'
         self.send_message(info="Executing code snippet", code=code_string)
+        save_vars = run_spec.get('return_variables', [])
+        if isinstance(save_vars, str):
+            save_vars = [save_vars]
+        result = {'variables': {}}
         with tempfile.TemporaryDirectory() as tmpdir:
-            with ChangeDir(tmpdir):
+            work_dir = self.metadata.get('work_dir', tmpdir)
+            with ChangeDir(work_dir):
+                start_time = time.time()
                 try:
-                    loc = {"print": lambda x: stdout_buffer.write(f"{x}\n")}
-                    output = exec_and_return(code_string, {}, loc)
-                    # print('<PYTHON>Snippet output is ', output)
-                    if output is not None:
-                        stdout_buffer.write(f'{output}\n')
-                    if save_vars:
-                        stdout_buffer.write('Returned variables:}')
-                    for variable in save_vars:
-                        stdout_buffer.write(f'  {variable}={loc.get(variable)}')
-                    output = stdout_buffer.getvalue()
-                    if output:
-                        return "INFO\n" + output
-                    else:
-                        return 'Python finished with no output.  If you need the output make sure you print the value out or return it.'
+                    if run_spec.get('execute', True):
+                        loc = {"print": lambda x: stdout_buffer.write(f"{x}\n")}
+                        result['last_expression_value'] = exec_and_return(code_string, {}, loc)
+                        for variable in save_vars:
+                            result['variables'][variable] = loc.get(variable)
+                        result['printout'] = stdout_buffer.getvalue()
                 except Exception as e:
                     self.send_message(info=' AI authored Python script errored out', exception=e, traceback=tb.format_exc())
-                    return f"""Python excution thrown an error: {str(e)}
-{tb.format_exc()}
-Please rewrite your script. Please be creative and try different methodologies.
-"""
+                    result['error'] = str(e)
+                    result['traceback'] = tb.format_exc()
                 finally:
-                    if keep_file:
-                        self.send_message(info=f'Saving source code to file {keep_file}')
-                        with open(keep_file, 'w+') as f:
+                    if run_spec.get('save_as'):
+                        self.send_message(info=f'Saving source code to {run_spec["save_as"]}')
+                        with open(run_spec["save_as"], 'w+') as f:
                             f.write(code_string)
-                    for fname in os.listdir(tmpdir):
-                        self.send_message(
-                            info=f'Output file available (they will be deleted if you do not retrieve now)',
-                            filename=os.path.join(tmpdir, fname)
-                        )
+                    for fname in os.listdir(work_dir):
+                        fullname = os.path.join(work_dir, fname)
+                        if os.path.getmtime(fullname) > start_time:
+                            self.send_message(
+                                info=f'File created or modified after execution',
+                                action='output_file',
+                                filename=fullname,
+                            )
+        return result

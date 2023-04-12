@@ -66,6 +66,10 @@ def get_openai_completion(
         print('RateLimitError from OpenAI.  Likely the model is overloaded.  Waiting 30s to retry. ')
         time.sleep(30)
         response = openai.ChatCompletion.create(model=model, **options).to_dict()
+    except openai.error.APIError as e:
+        print('APIError from OpenAI.  The server encountered problems.  Waiting 10s to retry. ')
+        time.sleep(10)
+        response = openai.ChatCompletion.create(model=model, **options).to_dict()
     if text_only:
         return response['choices'][0]['message']['content']
     else:
