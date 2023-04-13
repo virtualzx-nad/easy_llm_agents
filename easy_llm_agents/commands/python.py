@@ -64,10 +64,14 @@ class PythonCommand(BaseCommand,
 """
 ):
     def generate_prompt(self):
-        """Take the python code it write and run them"""
-        run_id = str(uuid.uuid4())
+        """Take the python code it write and run them"""        
         stdout_buffer = io.StringIO()
-        run_spec = self.content
+        if isinstance(self.content, list):  # Need future work to handle multiple scripts in one command
+            if len(self.content) > 1:
+                self.send_message(info='More than one script passed in Python but only one can be executed for now')
+            run_spec = self.content[0]
+        else:
+            run_spec = self.content
         for pkg in run_spec.get('packages', []):
             self.send_message(action='install_package', package=pkg)
         if run_spec.get('note'):
@@ -95,6 +99,7 @@ class PythonCommand(BaseCommand,
                     self.send_message(info=' AI authored Python script errored out', exception=e, traceback=tb.format_exc())
                     result['error'] = str(e)
                     result['traceback'] = tb.format_exc()
+                    result['instruction'] = 'Python script errored out.  Please check and fix syntax and logic errors.'
                 finally:
                     if run_spec.get('save_as'):
                         self.send_message(info=f'Saving source code to {run_spec["save_as"]}')

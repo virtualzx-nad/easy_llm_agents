@@ -387,7 +387,10 @@ Examples are for showing formats only.  Do not use any information within or dis
                         try:
                             prompt_i = task.generate_prompt()
                             if prompt_i:
-                                prompt += f'`{task.command}` returns: {prompt_i}\n'
+                                if len(str(prompt_i)) > 2000:
+                                    prompt += f'`{task.command}` return is truncated because it is too long ({len(prompt_id)} characters).  Here are the first 200 characters: {str(prompt_i)[:2000]}\n'
+                                else:
+                                    prompt += f'`{task.command}` returns: {prompt_i}\n'
                         except Exception as e:
                             prompt += f"Command {task.command} thrown exception {e}\n{tb.format_exc()}"
                 if response:
