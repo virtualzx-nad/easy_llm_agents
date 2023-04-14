@@ -69,9 +69,19 @@ These correspond to the actual command that you issue like this
 
 #### Teaching the Agent to Add Commands
 
-After creating a `gpt-4` agent, we ask it to read the above section of this file, then asked it to create new commands.  It is able to create, deploy, then debug and execute the new command.
- 
-[![GPT-4 Agent Adds Command for Itself during Live Conversation](https://img.youtube.com/vi/s77I-LfEHaQ/0.jpg)](https://www.youtube.com/watch?v=s77I-LfEHaQ)
+After creating a `gpt-4` agent, we ask it to read the above section of this file, then asked it to create new commands.  It is able to create, deploy, then debug and execute the new command.  We will leave details to images below because the test case actuall search for and read this very document, so we do not want to give too much away here:
+
+[<img width="1131" alt="image" src="https://user-images.githubusercontent.com/3173151/231618330-b7555f18-799b-446a-b3de-dd49516b4d5e.png">](./examples/learn_a_new_trick.ipynb)
+
+Then it show me what to do
+<img width="632" alt="image" src="https://user-images.githubusercontent.com/3173151/231618716-036d5a49-ed5d-4896-93d2-8045d3829ce9.png">
+
+which I would complied, but for obvious reasons that is not screenshotted here.  It is then asked to actually perform a task to test this out, and here is where it gets interesting.  Bug was found, fixed, but actually not fixed, then fixed again, when it finally worked.  
+
+<img width="1094" alt="image" src="https://user-images.githubusercontent.com/3173151/231619102-cdbca787-51b6-417d-b7b9-f05823c85ef6.png">
+and finally gave the desired results.
+<img width="1097" alt="image" src="https://user-images.githubusercontent.com/3173151/231619178-a829c569-b1af-4a16-934b-c03092bd1a3e.png">
+The command is also saved so that it can now be used in future sessions as well!  
 
 
 #### Thinking as a Separate Task
