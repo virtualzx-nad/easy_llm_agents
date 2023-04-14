@@ -5,3 +5,4 @@ from .self_note import SelfNoteCommand
 from .search import SearchCommand
 from .read_page import ReadPageCommand
 from .python import PythonCommand
+from .delegate import DelegateCommand

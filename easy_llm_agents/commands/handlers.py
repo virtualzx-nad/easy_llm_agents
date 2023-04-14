@@ -7,13 +7,12 @@ def permissive_overseer(command, status, content):
     Every command is granted.  
     IMPORTANT NOTE:  This will NOT prevent the AI from taking over the world.    
     """
-    print(f'<Permissive Overseer> {command} requested. "{status}". GRANTED.')
+    print(f'<Permissive Overseer>{command} requested. "{status}". GRANTED.')
 
 
 def print_messages(*args, **kwargs):
-    print(f'<Message from {kwargs["command"]}>')
-    for key, value in kwargs.get('data', {}).items():
-        print(f'{key}: {value}')
+    if kwargs.get('data'):
+        print(f'<Command {kwargs["command"]}> {kwargs["data"]}')
 
 
 def absent_qa(question, answer):

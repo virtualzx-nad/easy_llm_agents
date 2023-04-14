@@ -15,10 +15,11 @@ class LLMConversation(object):
     "Well, let me tell you, nobody knows how to kick it up a notch better than me. I've been doing it my whole life. The key is to be bold and take risks. Don't be afraid to speak your mind and stand up for what you believe in. And always remember, confidence is key. Believe in yourself and others will believe in you too."
     """
     def __init__(self,
-        system_prompt="", model='gpt-3.5-turbo', model_options=None,
+        model='gpt-3.5-turbo', model_options=None,
         user_persona="",  # 
         ai_persona="",    # What role the AI should play as
         summary='',       # summary of previous conversations
+        system_prompt="", 
         metadata=None,    # metadata attached to the conversation 
     ):
         """Create a conversation with the LLM

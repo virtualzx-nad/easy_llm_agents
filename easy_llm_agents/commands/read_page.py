@@ -14,7 +14,7 @@ from .command import BaseCommand
 
 class ReadPageCommand(BaseCommand,
     command='read_page',
-    description=f'Obtain info from a page based on URL. Describe what to extract with the description field. If you need original text, explicitly say verbatim in the description; otherwise returns will be summarized. ' 
+    description=f'Obtain info from a page based on URL. Describe what to extract with the description field. If you need original text, explicitly say verbatim in the description; otherwise returns will be summarized. Use this tool instead of directly scrape with Python code.  If one reading did not give you the desired content, try to change your instructions.' 
 ):
     summarization_model = 'gpt-3.5-turbo'
     summary_size = 600
@@ -27,8 +27,12 @@ class ReadPageCommand(BaseCommand,
         output = []
         # Now go and summarize each page requested
         for entry in self.content:
-            url = entry.get('url')
-            description = entry.get('description', 'key information')
+            if isinstance(entry, str):
+                url = entry
+                description = self.summary
+            else:
+                url = entry.get('url')
+                description = entry.get('description', 'key information')
             if not url:
                 continue
             self.send_message(info=f'Extract and summarize {url} with instruction `{description}`')
@@ -42,10 +46,10 @@ class ReadPageCommand(BaseCommand,
             else:
                 summary = "Unable to extract info. The page might be dynamic or restricted; try a different URL."
                 self.send_message(info=f'Page {url} has no content')
-            output.append({'url': url, 'extracted_info': summary})
+            output.append(f'url: {url}\n Info: {summary}\n')
         if not output:
             output = 'Did not find anything.  Please try different URLs or a different command.'
-        return output
+        return '\n'.join(output)
 
     @staticmethod
     def extract_page(url):
@@ -106,7 +110,7 @@ class ReadPageCommand(BaseCommand,
             else:
                 summary_text = (
                     f"Extract from text below based on this instruction `{description}`. "
-                    f"Keep your response within {self.summary_size} tokens.  Return verbatim text or sentence if the instruction asks for a specific section.  Keep all formatting and indentation in code blocks.  \n"
+                    f"Keep your response within {self.summary_size} tokens.  Return verbatim text or sentence if the instruction asks for a specific section or if the content is source code.  Keep all formatting and indentation in code blocks.  \n"
                     "Text:\n```" + current_summary + '\n' +  '\n'.join(included) + "```"
                 )
                 self.send_message(info=f'Performing summarization for line #{start+1} to {i} with approx {int(total_tokens)} tokens in text')

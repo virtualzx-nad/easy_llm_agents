@@ -17,12 +17,12 @@ LOG_FUNC = print
 # These are the default options used in completion models or chat completion models
 # explicit values will always be saved with each cache
 DEFAULT_CHAT_OPTIONS = dict(
-    temperature=0,
+    temperature=0.2,
     top_p=1.0,
     max_tokens=2000,
     n=1,
-    frequency_penalty=0.5,
-    presence_penalty=0.5,  
+    frequency_penalty=0.1,
+    presence_penalty=0.1,  
 )
 
 

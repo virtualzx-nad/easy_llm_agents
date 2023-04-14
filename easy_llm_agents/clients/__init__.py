@@ -4,7 +4,7 @@ from .openai import get_openai_completion
 MODEL_SWITCH = {
     'gpt-3.5-turbo': get_openai_completion,
     'gpt-4': get_openai_completion,
-    'gpt-4-8k': get_openai_completion,
+    'gpt-4-32k': get_openai_completion,
 }
 
 def get_completion(message, model='gpt-3.5-turbo', *args, **kwargs):

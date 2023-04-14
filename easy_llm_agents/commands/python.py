@@ -58,6 +58,7 @@ class PythonCommand(BaseCommand,
     - request_file: Optional. Request files to be supplied; 
     - save_as:  Optional. String. Filename for the code to be saved as; do not include path.
     - return_variables:  Optional. List of variable names that you need to be returned after the code is executed
+    - reuse_variables: Optional. list of variable returned in previous sessions that you want to reuse
     - packages: Optional. A list of packages that need to be installed
     - execute: Optional.  If False, the code will be saved but not executed. Default is True.
     - note: any important messages. If you are unable to directly execute, put a message in `note`, code that you cannot execute in the `code` field, and do not return an `execute` field.
@@ -76,6 +77,12 @@ class PythonCommand(BaseCommand,
             self.send_message(action='install_package', package=pkg)
         if run_spec.get('note'):
             self.send_message(info=run_spec['note'])
+        # Load any variables saved in previous sessions that are requested
+        loc = {"print": lambda x: stdout_buffer.write(f"{x}\n")}
+        saved_vars = self.metadata.get('python_command_variables', {})
+        for var in run_spec.get('reuse_variables', []):
+            loc[var] = saved_vars.get(var)
+        # Extract code string
         code_string = run_spec.get('code')
         if not code_string:
             return 'Source code not found.  Make sure to provide source code even if you believe you cannot execute it'
@@ -90,9 +97,9 @@ class PythonCommand(BaseCommand,
                 start_time = time.time()
                 try:
                     if run_spec.get('execute', True):
-                        loc = {"print": lambda x: stdout_buffer.write(f"{x}\n")}
                         result['last_expression_value'] = exec_and_return(code_string, {}, loc)
                         for variable in save_vars:
+                            self.metadata.setdefault('python_command_variables', {})[variable] = loc.get(variable)
                             result['variables'][variable] = loc.get(variable)
                         result['printout'] = stdout_buffer.getvalue()
                 except Exception as e:
