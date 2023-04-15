@@ -1,14 +1,12 @@
 """Read content of a website and provide a short summary on one area of information"""
-import re
 import io
 import math
 from urllib.parse import urlparse
 
 import tiktoken           # openai tokenizer.  for counting tokens
-import requests
-from bs4 import BeautifulSoup
 
 from ..clients import get_completion
+from ..utils import extract_content, parse_pdf, parse_html
 from .command import BaseCommand
 
 
@@ -36,10 +34,16 @@ class ReadPageCommand(BaseCommand,
             if not url:
                 continue
             self.send_message(info=f'Extract and summarize {url} with instruction `{description}`')
-            if url.lower().endswith('.pdf'):
-                text = self.extract_pdf(url)
+            content, content_type = extract_content(url)
+            plain_types = ['text/plain', 'application/json', 'application/csv', 'text/markdown']
+            if not content:
+                text = ''
+            elif content_type == 'application/pdf' or url.lower().endswith('.pdf'):
+                text = parse_pdf(content)
+            elif content_type in plain_types or url.lower().endswith('.txt'):
+                text = content.decode()
             else:
-                text = self.extract_page(url)
+                text = parse_html(content)
             if text:
                 summary = self.summarize_text(text, description)
                 success += 1
@@ -51,45 +55,6 @@ class ReadPageCommand(BaseCommand,
             output = 'Did not find anything.  Please try different URLs or a different command.'
         return '\n'.join(output)
 
-    @staticmethod
-    def extract_page(url):
-        """Extract content of a page from its URL, preserving new lines and hyperlinks"""
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'
-        }
-        try:
-            response = requests.get(url, headers=headers)
-        except:
-            return
-        if response.status_code >= 200 and response.status_code < 300:
-            # Use BeautifulSoup to parse the webpage content
-            soup = BeautifulSoup(response.text, "html.parser")
-            if soup:
-                # Extract all the text and links from the HTML content
-                for link in soup.find_all('a'): # move links from a elements to text
-                    if 'href' in link:
-                        link.insert_after(' (' + link['href'] + ')')
-                for tag in soup.find_all(['p', 'br']):  # render line breaks
-                    tag.insert_after('\n')
-                text = soup.get_text('\n')
-                text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)   # consolidate new lines
-                return text
-
-    @staticmethod
-    def extract_pdf(url):
-        """Extract text from a pdf in url"""
-        try:
-            import PyPDF2
-        except ImportError:
-            return
-
-        response = requests.get(url)
-        pdf_file = io.BytesIO(response.content)
-        pdf_reader = PyPDF2.PdfReader(pdf_file)
-        text = ''
-        for page in pdf_reader.pages:
-            text += page.extract_text()
-        return text
 
     def summarize_text(self, text, description=""):
         encoding = tiktoken.encoding_for_model(self.summarization_model)

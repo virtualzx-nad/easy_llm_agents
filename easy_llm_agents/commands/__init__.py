@@ -6,3 +6,4 @@ from .search import SearchCommand
 from .read_page import ReadPageCommand
 from .python import PythonCommand
 from .delegate import DelegateCommand
+from .save_file import SaveFileCommand

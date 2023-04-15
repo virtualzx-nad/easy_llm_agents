@@ -3,33 +3,10 @@
 import io
 import os
 import ast
-import sys
-import uuid
-import json
 import time
-import tempfile
 import traceback as tb
 
 from .command import BaseCommand
-
-class ChangeDir:
-    """A context manager for changing the current directory while also preserving the current path in search path
-    Note this was written by GPT and looks legit in a glance.  Check more carefully when time permits.
-    """
-    def __init__(self, path):
-        self.path = path
-        self.current_dir = os.getcwd()
-        self.current_dir_in_sys_path = self.current_dir in sys.path
-    
-    def __enter__(self):
-        os.chdir(self.path)
-        if not self.current_dir_in_sys_path:
-            sys.path.append(self.current_dir)
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        os.chdir(self.current_dir)
-        if not self.current_dir_in_sys_path:
-            sys.path.remove(self.current_dir)
 
 
 def exec_and_return(script, globals=None, locals=None):
@@ -53,7 +30,7 @@ def exec_and_return(script, globals=None, locals=None):
 
 class PythonCommand(BaseCommand,
     command='python',
-    description="""Submit Python code that perform complex tasks or computations. Printouts or error messages will be returned to you. The content must be a Python dictionary with fields:
+    description="""Submit Python code that perform complex tasks or computations. Printouts or error messages will be returned to you. You should not use this for the sole purpose of creating files. The content must be a Python dictionary with fields:
     - code: Required field.  A string containing the code snippet
     - request_file: Optional. Request files to be supplied; 
     - save_as:  Optional. String. Filename for the code to be saved as; do not include path.
@@ -91,33 +68,31 @@ class PythonCommand(BaseCommand,
         if isinstance(save_vars, str):
             save_vars = [save_vars]
         result = {'variables': {}}
-        with tempfile.TemporaryDirectory() as tmpdir:
-            work_dir = self.metadata.get('work_dir', tmpdir)
-            with ChangeDir(work_dir):
-                start_time = time.time()
-                try:
-                    if run_spec.get('execute', True):
-                        result['last_expression_value'] = exec_and_return(code_string, {}, loc)
-                        for variable in save_vars:
-                            self.metadata.setdefault('python_command_variables', {})[variable] = loc.get(variable)
-                            result['variables'][variable] = loc.get(variable)
-                        result['printout'] = stdout_buffer.getvalue()
-                except Exception as e:
-                    self.send_message(info=' AI authored Python script errored out', exception=e, traceback=tb.format_exc())
-                    result['error'] = str(e)
-                    result['traceback'] = tb.format_exc()
-                    result['instruction'] = 'Python script errored out.  Please check and fix syntax and logic errors.'
-                finally:
-                    if run_spec.get('save_as'):
-                        self.send_message(info=f'Saving source code to {run_spec["save_as"]}')
-                        with open(run_spec["save_as"], 'w+') as f:
-                            f.write(code_string)
-                    for fname in os.listdir(work_dir):
-                        fullname = os.path.join(work_dir, fname)
-                        if os.path.getmtime(fullname) > start_time:
-                            self.send_message(
-                                info=f'File created or modified after execution',
-                                action='output_file',
-                                filename=fullname,
-                            )
+        curr_dir = os.getcwd()
+        start_time = time.time()
+        try:
+            if run_spec.get('execute', True):
+                result['last_expression_value'] = exec_and_return(code_string, {}, loc)
+                for variable in save_vars:
+                    self.metadata.setdefault('python_command_variables', {})[variable] = loc.get(variable)
+                    result['variables'][variable] = loc.get(variable)
+                result['printout'] = stdout_buffer.getvalue()
+        except Exception as e:
+            self.send_message(info=' AI authored Python script errored out', exception=e, traceback=tb.format_exc())
+            result['error'] = str(e)
+            result['traceback'] = tb.format_exc()
+            result['instruction'] = 'Python script errored out.  Please check and fix syntax and logic errors.'
+        finally:
+            if run_spec.get('save_as'):
+                self.send_message(info=f'Saving source code to {run_spec["save_as"]}')
+                with open(run_spec["save_as"], 'w+') as f:
+                    f.write(code_string)
+            for fname in os.listdir(curr_dir):
+                fullname = os.path.join(curr_dir, fname)
+                if os.path.getmtime(fullname) > start_time:
+                    self.send_message(
+                        info=f'File created or modified after execution',
+                        action='output_file',
+                        filename=fullname,
+                    )
         return result

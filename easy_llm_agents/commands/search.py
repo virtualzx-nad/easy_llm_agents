@@ -14,23 +14,31 @@ class SearchCommand(BaseCommand, command='search', description='Search Goole to 
     """
     def generate_prompt(self):
         searches = self.content
-
+        default_size = 3
         if not isinstance(searches, list):
             searches = [searches]
+        keep = []
         for i, search in enumerate(searches):
-            if isinstance(search, str):
-                searches[i] = {'query': search }
+            if isinstance(search, int):
+                default_size = search
+            elif isinstance(search, str):
+                keep.append({'query': search })
+            else:
+                keep.append(search)
         results = []
-        for search in searches:
+        for search in keep:
             if not search.get('query'):
                 continue
-            self.send_message(info=f'Googling {search["query"]}')
-            results.extend(self.google_search(search['query'], max_results=search.get('size', 3)))
+            size = search.get('size', default_size)
+            self.send_message(query=search["query"], size=size)
+            results.extend(self.google_search(search['query'], max_results=size))
         output = []
         for entry in results:
             urls = ', '.join(entry['links'])
             output.append(f'{entry["title"]} [{urls}]\n{entry["content"]}\n')
-        return '\n'.join(output) or 'No results. Try to divide complex searches into many incremental ones.'
+        result = '\n'.join(output) or 'No results. Try to divide complex searches into many incremental ones.'
+        self.send_message(num_results=len(output), result_len=len(result))
+        return result
 
     @staticmethod
     def google_search(query, max_results=10, url="https://www.google.com/search?q={query}"):
