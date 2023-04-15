@@ -288,7 +288,7 @@ Examples are for showing formats only.  Do not use any information within or dis
         for command, task_class in cls._registry.items():
             if command in disable:
                 continue
-            if not task_class and essential_only:
+            if not task_class.essential and essential_only:
                 continue
             command_list += f' - `{command}`: {task_class.description}\n'
         command_list += 'Full list of valid commands: ' + str(list(cmd for cmd in cls._registry if cmd not in disable)) + '\n'
