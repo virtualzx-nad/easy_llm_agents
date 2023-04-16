@@ -5,8 +5,8 @@ import json5 as json
 import traceback as tb
 from datetime import datetime
 
-from ..conversation import LLMConversation
-from ..utils import ChangeDir
+from ..conversation import LLMConversation, AnswerTruncated
+from ..utils import ChangeDir, SkipMissingDict
 
 from . import handlers
 
@@ -97,7 +97,7 @@ class BaseCommand(object):
     """
     _registry = {}           # This stores all possible commands to render command lists and calls
     command = None           # The base command cannot be invoked but will provide some base instructions on how to use commands in general
-    default_options = { "max_tokens": 1000 }   # even 1000 is probably long.  If some task involve generating large body of text that should be offloaded.
+    default_options = { "max_tokens": 1200 }   # even 1000 is probably long.  If some task involve generating large body of text that should be offloaded.
     additional_context = (
         f'Date: ' + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '\n'
         """You are an advanced prototype that can access realtime data, execute directly code and interact with external systems through a set of commands that will carried out by workers. 
@@ -124,10 +124,9 @@ class BaseCommand(object):
   {
     "command": "delegate",
     "summary": "Determine the Super Fake award winner",
-    "content": [{
-      "instruction": "Find out who is the most recent Super Fake award winner",
-      "difficulty": "low"
-    }]
+    "content": {
+      "instruction": "Find out who is the most recent Super Fake award winner"
+    }
   }
 ]
 <user>: `delegate` returns: The most recent Super Fake award winner was SpongeAlice CirclePants
@@ -144,11 +143,10 @@ class BaseCommand(object):
   {
     "command": "delegate",
     "summary": "Find Jane CirclePants' favorite dish",
-    "content": [{
+    "content": {
       "instruction": "Find out what is Jane CirclePants' favorite dish",
-      "difficulty": "high",
       "context": "Jane CirclePants is Super Fake award winner was SpongeAlice CirclePants' wife"
-    }]
+    }
   }
 ]
 <user>: `delegate` returns: Jane CirclePants' favorite dish is jigjagjugg.
@@ -368,7 +366,19 @@ Examples are for showing formats only.  Do not use any information within or dis
                     human_input = yield response
                     prompt += '\nuser instruction: ' + human_input
                     rejections = 0
-                llm_response = conversation.talk(prompt, footnote=cls.generate_command_list(disable=disable, essential_only=essential_only))
+                try:
+                    llm_response = conversation.talk(
+                        prompt,
+                        footnote=cls.generate_command_list(disable=disable, essential_only=essential_only),
+                        raise_if_truncated=True,
+                    )
+                except AnswerTruncated:
+                    lm_response = conversation.talk(
+                        prompt,
+                        footnote=cls.generate_command_list(disable=disable, essential_only=essential_only) +
+                            '\nIn this response you can only use ONE command to avoid exceeding token limit.\n',
+                        raise_if_truncated=True,
+                    )
                 # Now work through all generated tasks
                 response = ''
                 for icycle in range(max_ai_cycles):
@@ -408,7 +418,18 @@ Examples are for showing formats only.  Do not use any information within or dis
                         break
                     if not prompt:
                         prompt = 'Continue'
-                    llm_response = conversation.talk(prompt, footnote=cls.generate_command_list(disable=disable, essential_only=essential_only))
+                    try:
+                        llm_response = conversation.talk(
+                            prompt,
+                            footnote=cls.generate_command_list(disable=disable, essential_only=essential_only),
+                            raise_if_truncated=True,
+                        )
+                    except AnswerTruncated:
+                        llm_response = conversation.talk(
+                            prompt,
+                            footnote=cls.generate_command_list(disable=disable, essential_only=essential_only) + 
+                                '\nIn this response you can only use ONE command to avoid exceeding token limit.\n',
+                        )
                 else:
                     print(f"<DRIVER> Max AI autopilot cycles reached. Ejecting to human control")
                     response += 'Maximum AI autopilot cycles reached. Please confirm you want to continue.'
@@ -416,3 +437,14 @@ Examples are for showing formats only.  Do not use any information within or dis
     def send_message(self, **data):
         """Send something to messenger"""
         self.messenger(command=self.command, task=self, data=data)
+
+    def format_text(self, text):
+        """sometimes it will refer to previously saved variables in its answer. This would render them"""
+        variables = SkipMissingDict(self.metadata.get('stored_variables', {}))
+        try:
+            text = text.format_map(variables)
+        except Exception as e:
+            print('Text cannot be rendered with variables')
+        if text.strip() in variables.keys():
+            text = variables[text.strip()]
+        return text

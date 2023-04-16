@@ -6,6 +6,10 @@ import json
 from .clients import get_completion
 
 
+class AnswerTruncated(Exception):
+    """The response has hit token limit and has been truncated."""
+    pass
+
 class LLMConversation(object):
     """An ongoing conversation with an LLM
     
@@ -40,7 +44,7 @@ class LLMConversation(object):
         self.metadata = metadata or {}
         self.summary = summary
     
-    def talk(self, content, footnote=None):
+    def talk(self, content, footnote=None, raise_if_truncated=False):
         """Talk to the model and return the results
         
         Args:
@@ -65,13 +69,18 @@ class LLMConversation(object):
         self._last_content = previous               # for debug only
         self._last_system_prompt = system_prompt    # for debug only
 
-        answer = get_completion(
+        resp = get_completion(
             previous,
             model=self.model,
             system_prompt=system_prompt,
-            text_only=True,
+            text_only=False,
             **self.model_options
         )
+        top_choice = resp['choices'][0]
+        if top_choice['finish_reason'] == 'length' and raise_if_truncated:
+            self.history.pop()
+            raise AnswerTruncated('Answer exceeded token limit')
+        answer = top_choice['message']['content']
         self.history.append({'role': 'assistant', 'content': answer})
         self.summarize()
         return answer

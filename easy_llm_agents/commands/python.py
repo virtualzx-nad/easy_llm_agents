@@ -7,6 +7,7 @@ import time
 import traceback as tb
 
 from .command import BaseCommand
+from ..clients import get_completion, get_edit
 
 
 def exec_and_return(script, globals=None, locals=None):
@@ -35,12 +36,17 @@ class PythonCommand(BaseCommand,
     - request_file: Optional. Request files to be supplied; 
     - save_as:  Optional. String. Filename for the code to be saved as; do not include path.
     - return_variables:  Optional. List of variable names that you need to be returned after the code is executed
-    - reuse_variables: Optional. list of variable returned in previous sessions that you want to reuse
     - packages: Optional. A list of packages that need to be installed
     - execute: Optional.  If False, the code will be saved but not executed. Default is True.
     - note: any important messages. If you are unable to directly execute, put a message in `note`, code that you cannot execute in the `code` field, and do not return an `execute` field.
 """
 ):
+    edit_instructions = [
+        'Fix the error in the provided Python snippet',
+        'The provided Python snippet throws exception {exception}. Please fix it',
+        'The provided Python snippet throws exception {exception}. Please fix it and pay special attention to escaping characters in strings.',       
+    ]
+
     def generate_prompt(self):
         """Take the python code it write and run them"""        
         stdout_buffer = io.StringIO()
@@ -56,9 +62,9 @@ class PythonCommand(BaseCommand,
             self.send_message(info=run_spec['note'])
         # Load any variables saved in previous sessions that are requested
         loc = {"print": lambda x: stdout_buffer.write(f"{x}\n")}
-        saved_vars = self.metadata.get('python_command_variables', {})
-        for var in run_spec.get('reuse_variables', []):
-            loc[var] = saved_vars.get(var)
+        saved_vars = self.metadata.get('stored_variables', {})
+        for key, value in saved_vars.items():
+            loc[key] = value
         # Extract code string
         code_string = run_spec.get('code')
         if not code_string:
@@ -70,29 +76,46 @@ class PythonCommand(BaseCommand,
         result = {'variables': {}}
         curr_dir = os.getcwd()
         start_time = time.time()
-        try:
-            if run_spec.get('execute', True):
+        if run_spec.get('execute', True):
+            try:
                 result['last_expression_value'] = exec_and_return(code_string, {}, loc)
-                for variable in save_vars:
-                    self.metadata.setdefault('python_command_variables', {})[variable] = loc.get(variable)
-                    result['variables'][variable] = loc.get(variable)
-                result['printout'] = stdout_buffer.getvalue()
-        except Exception as e:
-            self.send_message(info=' AI authored Python script errored out', exception=e, traceback=tb.format_exc())
-            result['error'] = str(e)
-            result['traceback'] = tb.format_exc()
-            result['instruction'] = 'Python script errored out.  Please check and fix syntax and logic errors.'
-        finally:
-            if run_spec.get('save_as'):
-                self.send_message(info=f'Saving source code to {run_spec["save_as"]}')
-                with open(run_spec["save_as"], 'w+') as f:
-                    f.write(code_string)
-            for fname in os.listdir(curr_dir):
-                fullname = os.path.join(curr_dir, fname)
-                if os.path.getmtime(fullname) > start_time:
-                    self.send_message(
-                        info=f'File created or modified after execution',
-                        action='output_file',
-                        filename=fullname,
-                    )
+            except Exception as e:  # ok it errors out.  No biggie.  Try all kinds of stuff to make it work
+                # first try to fix the snippet twice with edit model then gpt 4
+                for instruction in self.edit_instructions:
+                    try:
+                        edited = get_edit(code_string, instruction, model='code-davinci-edit-001', text_only=True)
+                        result['last_expression_value'] = exec_and_return(edited, {}, loc)
+                    except Exception:
+                        continue
+                    else:  # use gpt-4 to correct as last ditch effort
+                        edited = get_completion(
+                            "A syntax error is reported in the following code snippet. "
+                            "Please correct the syntax error and make no other changes.  "
+                            "Return the executable code only with no markups. "
+                            "Please refrain from making any explanations. "
+                            "If you absolutely have to  please put them as comments.\n```"
+                            + code_string + "```\n", model='gpt-4', text_only=True).strip('```')
+                        try:
+                            result['last_expression_value'] = exec_and_return(edited, {}, loc)
+                        except Exception as e2:   # really can't fix this sorry
+                            self.send_message(info=' AI authored Python script errored out', exception=e2, traceback=tb.format_exc())
+                            result['error'] = str(e2)
+                            result['traceback'] = tb.format_exc()
+                            result['instruction'] = 'Python script errored out.  Please check and fix syntax and logic errors.'
+        for variable in save_vars:
+            self.metadata.setdefault('stored_variables', {})[variable] = loc.get(variable)
+            result['variables'][variable] = loc.get(variable)
+        result['printout'] = stdout_buffer.getvalue()
+        if run_spec.get('save_as'):
+            self.send_message(info=f'Saving source code to {run_spec["save_as"]}')
+            with open(run_spec["save_as"], 'w+') as f:
+                f.write(code_string)
+        for fname in os.listdir(curr_dir):
+            fullname = os.path.join(curr_dir, fname)
+            if os.path.getmtime(fullname) > start_time:
+                self.send_message(
+                    info=f'File created or modified after execution',
+                    action='output_file',
+                    filename=fullname,
+                )
         return result

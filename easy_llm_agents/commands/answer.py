@@ -1,5 +1,7 @@
 """Talk to flesh and blood and render any help possible"""
 from .command import BaseCommand
+from ..utils import SkipMissingDict
+
 
 class AnswerCommand(BaseCommand,
     command='answer',
@@ -11,6 +13,13 @@ class AnswerCommand(BaseCommand,
             content = self.content
         else:
             content = [self.content]
-        
-        return '\n'.join(str(entry) for entry in content) or self.summary
+        items = []
+        for entry in content:
+            if isinstance(entry, str):
+                entry = self.format_text(entry)
+            else:
+                entry = str(entry)
+            if entry:
+                items.append(entry)
+        return '\n'.join(items) or self.summary
 

@@ -16,7 +16,7 @@ class ReadPageCommand(BaseCommand,
 ):
     summarization_model = 'gpt-3.5-turbo'
     summary_size = 600
-    max_tokens = 2000
+    max_tokens = 2500
 
     def generate_prompt(self):
         if not isinstance(self.content, list):
@@ -28,9 +28,11 @@ class ReadPageCommand(BaseCommand,
             if isinstance(entry, str):
                 url = entry
                 description = self.summary
-            else:
+            elif isinstance(entry, dict):
                 url = entry.get('url')
                 description = entry.get('description', 'key information')
+            else:
+                continue
             if not url:
                 continue
             self.send_message(info=f'Extract and summarize {url} with instruction `{description}`')
@@ -63,6 +65,11 @@ class ReadPageCommand(BaseCommand,
         included = []
         lines.append('')
         current_summary = ''
+        base_text = (
+            f"Extract from text below based on this instruction `{description}`. "
+            f"Keep your response within {self.summary_size} tokens.  Return verbatim text or sentence if the instruction asks for a specific section or if the content is source code.  Keep all formatting and indentation in code blocks.  \n"
+            "Text:\n```" + current_summary + '\n'
+                )
         start = 0
         toks = [len(encoding.encode(line)) for line in lines]
         self.send_message(info=f'Total lines: {len(lines)-1}. Tokens: {sum(toks)}. Summarizations~ {int(math.ceil(sum(toks)/2000))}')
@@ -73,15 +80,16 @@ class ReadPageCommand(BaseCommand,
                     included.append(line)
                     total_tokens += tokens
             else:
-                summary_text = (
-                    f"Extract from text below based on this instruction `{description}`. "
-                    f"Keep your response within {self.summary_size} tokens.  Return verbatim text or sentence if the instruction asks for a specific section or if the content is source code.  Keep all formatting and indentation in code blocks.  \n"
-                    "Text:\n```" + current_summary + '\n' +  '\n'.join(included) + "```"
-                )
+                summary_text = base_text +  '\n'.join(included) + "```"
                 self.send_message(info=f'Performing summarization for line #{start+1} to {i} with approx {int(total_tokens)} tokens in text')
                 current_summary = get_completion(summary_text, model=self.summarization_model, max_tokens=int(self.summary_size*2), text_only=True)
                 current_summary = current_summary.strip('```')
+                base_text = (
+                    f"Extract from text below based on this instruction `{description}`. "
+                    f"Keep your response within {self.summary_size} tokens.  Return verbatim text or sentence if the instruction asks for a specific section or if the content is source code.  Keep all formatting and indentation in code blocks.  \n"
+                    "Text:\n```" + current_summary + '\n'
+                )
                 included = [line]
                 start = i
-                total_tokens = tokens
+                total_tokens = tokens + len(encoding.encode(base_text))
         return current_summary

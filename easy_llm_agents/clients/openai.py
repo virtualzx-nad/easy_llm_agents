@@ -90,12 +90,18 @@ def get_openai_edit(
     text,
     instruction,
     model="text-davinci-edit-001",
+    text_only=False,
     **gpt_options
 ):
     """Edit code or text.  For now, not cached"""
-    return openai.Edit.create(
+    response = openai.Edit.create(
         model=model,
         input=text,
         instruction=instruction,
         **gpt_options
     ).to_dict()
+    
+    if text_only:
+        return response['choices'][0]['text']
+    else:
+        return response
