@@ -8,50 +8,56 @@ from .command import BaseCommand, handlers
 class DelegateCommand(BaseCommand,
     command='delegate',
     essential=True,
-    description=f'''Delegate a list of tasks to workers.  You should always try to divide your objective to smaller tasks before you delegate them to workers.  Workers can only see their instruction and cannot see past conversations, so you need to provide sufficient context for them.  Provide the following fields in content:
-     - `instruction`: list of instructions.  Each worker will be given one instruction and do work in order.
-     - `files`: Files and what data are stored in them; can be new or old files.  Workers use these to exchange information.
-     - `context':  any context information that the workers need to know to fulfill the instruction. Workers answering the same command see the same context, but workers answering different commands cannot see each others' contexts.
+    description=f'''Delegate a list of tasks to workers.  You should always try to divide your objective to smaller tasks before you delegate them to workers.  Workers can only see their instruction and cannot see past conversations, so you need to provide sufficient context for them.  You MUST supply all relevant filenames, otherwise workers do not know of those files.
 ''',
     additional_context='''
 Another example:
-<user>: Send a text message to my sis about the hottest TV shows now
+<user>: Send a love letter to each of pikglk's brothers through email
 <agent>: [
   {
     "command": "self_note",
     "summary": "Plan steps to achieve goal",
-    "content": ["Find what TV shows are currently hottest", "Write text message", "Send text to Yazadaya"]
+    "content": [
+        "Find who are Pikglk's brothers",
+        "Determine each brother's email addresses",
+        "Compose a love letter for each brother",
+        "Send each love letter"
+    ]
   },
   {
     "command": "delegate",
-    "summary": "Determine the hottest TV shows",
+    "summary": "Find Pikglk's brothers and their emails",
     "content": {
       "instruction": [
-          "Determine which TV shows are currently hottest and save list to `hot_tv_shows.txt`",
-          "Write a text message about hottest TV shows and save to `message_draft.txt`",
-          "Send the text message to the user's sister"
-      ],
-      "files": {
-        "hot_tv_shows.txt": "List of currently hottest TV shows",
-        "message_draft.txt": "Draft of the text message",
-      },
-      "context": "Writing and sending a text message about currently hottest TV shows to the user's sister."
+        "Determine who are Pikglk's brothers and save to `brothers.txt`",
+        "Find each brothers' email and save to `brother_emails.txt`"
+      ]
+    },
+    "files": {
+      "brothers.txt": "A list of Pikglk's brothers",
+      "brother_emails.txt": "Each brothers' emails"
     }
   }
 ]
-<user>: `delegete` returns: The text message has been sent to your sister. 
+<user>: `delegete` returns: pikglk has two brothers, Kigklg(kigklg@email.com) and Gkigkl(gkigkl@email.com)
 <assistant>: [
   {
-    "command": "self_note",
-    "summary": "Verify task is completed",
-    "content": ["delegate reports text message has been sent."]
-  },
-  {
-    "command": "answer",
-    "summary": "Answer only when success is verified",
-    "content": "The text message has been sent to your sister."
+    "command": "delegate",
+    "summary": "Compose emails for each brother",
+    "content": {
+      "instruction": [
+        "Write a love letter for Kigklg and save to `kigklg.txt`",
+        "Write a love letter for Gkigkl and save to `gkigkl.txt`"
+      ]
+    },
+    "files": {
+      "kigklg.txt": "A love letter to Kigklg",
+      "gkigkl.txt": "A love letter to Gkigkl"
+    }
   }
 ]
+
+Ask workers to create files as their output.  Do not create separate steps to save files as workers can only communicate through files. 
 '''
 ):
     def get_message_pipe(self, name):

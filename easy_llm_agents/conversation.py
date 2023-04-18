@@ -129,7 +129,7 @@ class LLMConversation(object):
                 current_summary = f"Summary of earlier exchanges: ```{self.summary}```"
             else:
                 current_summary = ''
-            prompt = f"""This is a series of exchanges between a user and an assistant which shall be referred to as "the assistant",  which issues commands in JSON format.   Please extract any information that will be helpful for later conversations.  Keep all filenames and their descriptions.\n{current_summary}\nExchanges: ```{to_summarize}```"""
+            prompt = f"""This is a series of exchanges between a user and an assistant which shall be referred to as "the assistant",  which issues commands in JSON format.   Please extract any information that will be helpful for later conversations.  Make sure all user questions and requirements are present.  Keep all filenames and their descriptions.\n{current_summary}\nExchanges: ```{to_summarize}```"""
             if token_count(prompt, 'gpt-3.5-turbo') < 2500:
                 model = 'gpt-3.5-turbo'
             else:

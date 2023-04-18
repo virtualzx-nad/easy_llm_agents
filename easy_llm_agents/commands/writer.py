@@ -23,14 +23,14 @@ class WriterCommand(
     description='Ask a writer to write a file for you, either code or text. You can write any non-binary files, for example a user manual, a book, an email, a README.md file, a javascript or Python source file, etc. Please provide sufficient context so that the writer can properly write the file correctly. Must provide these fields in context: `filename` name of the file to write including suffix which determines the file format; `instruction` string describing precisely what to write in the file; `context` string to provide detailed context for the writer to correctly write the file; `context_file` list all files that contain relevant context.',
     additional_context="""
 writer example:
-<user>: Create `yadaa_api.js` that enables Yadaa endpoint.  Specs in `technical_design.txt` 
+<user>: Create `yadaa_api.js` that enables Yadaa endpoint.  Specs in `technical_design.txt`. Use async.
 <assistant>: [
   {
     "command": "writer",
     "summary": "Write source code to enable Yadaa endpoint",
     "content": {
       "filename": "route.js",
-      "instruction": "Write source code file that enables Yadaa endpoint",
+      "instruction": "Write source code file that enables Yadaa endpoint and use async",
       "context": "Technical specifications can be found in `technical_design.txt`",
       "context_file": ["technical_design.txt"]
     }
