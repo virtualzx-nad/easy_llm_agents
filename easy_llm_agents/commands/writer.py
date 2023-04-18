@@ -23,7 +23,8 @@ class WriterCommand(
     description='Ask a writer to write a file for you, either code or text. You can write any non-binary files, for example a user manual, a book, an email, a README.md file, a javascript or Python source file, etc. Please provide sufficient context so that the writer can properly write the file correctly. Must provide these fields in context: `filename` name of the file to write including suffix which determines the file format; `instruction` string describing precisely what to write in the file; `context` string to provide detailed context for the writer to correctly write the file; `context_file` list all files that contain relevant context.',
     additional_context="""
 writer example:
-<user>: Create `yadaa_api.js` that enables Yadaa endpoint.  Specs in `technical_design.txt`. Use async.
+<system>: Technical specs are stored in `technical_design.txt`. Async is required.
+<user>: Create `yadaa_api.js` that enables Yadaa endpoint.  
 <assistant>: [
   {
     "command": "writer",
@@ -67,6 +68,8 @@ writer example:
                             context += f'\nContent of {context_fname}:\n' + f.read() + '\n'
                     except Exception as e:
                         output.append(f"Context file {context_fname} cannot be loaded")
+            else:
+                context += self.get_file_descriptions()
             if isinstance(filename, list):
                 for fname in filename:
                     tasks.append([fname, instruction, context])
@@ -121,6 +124,7 @@ writer example:
                     text_only=True,
                 )
             output.append(f'File {filename} was written')
+            self.register_file(filename, instruction)
         if missing:
             output.append('filename and instructions must be provided in command content.')
         return '\n'.join(output)

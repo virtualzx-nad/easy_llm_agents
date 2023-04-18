@@ -8,19 +8,20 @@ from .command import BaseCommand, handlers
 class DelegateCommand(BaseCommand,
     command='delegate',
     essential=True,
-    description=f'''Delegate a list of tasks to workers.  You should always try to divide your objective to smaller tasks before you delegate them to workers.  Workers can only see their instruction and cannot see past conversations, so you need to provide sufficient context for them.  You MUST supply all relevant filenames, otherwise workers do not know of those files.
+    description=f'''Delegate a list of tasks to workers.  You should always try to divide your objective to smaller tasks before you delegate them to workers.  Workers can only see their instruction and cannot see past conversations, so you need to provide sufficient context for them.
 ''',
     additional_context='''
-Another example:
-<user>: Send a love letter to each of pikglk's brothers through email
-<agent>: [
+When using `delegate` command, you must determine any intermediate information and assign files to store them.  Names of all intermedaite files and files given to you that contains context must also be provided in `files` field.
+Example:
+<user>: user instruction: Send a love letter based on `template.txt` to each of pikglk's brothers through email
+<assistant>: [
   {
     "command": "self_note",
     "summary": "Plan steps to achieve goal",
     "content": [
         "Find who are Pikglk's brothers",
         "Determine each brother's email addresses",
-        "Compose a love letter for each brother",
+        "Compose a love letter for each brother based on template provided",
         "Send each love letter"
     ]
   },
@@ -35,29 +36,30 @@ Another example:
     },
     "files": {
       "brothers.txt": "A list of Pikglk's brothers",
-      "brother_emails.txt": "Each brothers' emails"
-    }
+      "brother_emails.txt": "Each brothers' emails",
+    },
+    "context": "You are writing lover letters to each of Pikglk's brothers. To do that you need to determine who are his brothers and their emails."
   }
 ]
 <user>: `delegete` returns: pikglk has two brothers, Kigklg(kigklg@email.com) and Gkigkl(gkigkl@email.com)
 <assistant>: [
   {
     "command": "delegate",
-    "summary": "Compose emails for each brother",
+    "summary": "Compose emails for each brother based on template",
     "content": {
       "instruction": [
-        "Write a love letter for Kigklg and save to `kigklg.txt`",
-        "Write a love letter for Gkigkl and save to `gkigkl.txt`"
+        "Write a love letter for Kigklg and save to `kigklg.txt` based on the template in `template.txt`",
+        "Write a love letter for Gkigkl and save to `gkigkl.txt` based on the template in `template.txt`"
       ]
     },
     "files": {
+      "template.txt": "Template for the love letters",
       "kigklg.txt": "A love letter to Kigklg",
       "gkigkl.txt": "A love letter to Gkigkl"
-    }
+    },
+    "context": "You are writing lover letters based on a template to each of Pikglk's brothers, Kigklg and Gkigkl, to be sent through email."
   }
 ]
-
-Ask workers to create files as their output.  Do not create separate steps to save files as workers can only communicate through files. 
 '''
 ):
     def get_message_pipe(self, name):
@@ -93,29 +95,30 @@ Ask workers to create files as their output.  Do not create separate steps to sa
                 if isinstance(files, dict):
                     for name, purpose in files.items():
                         context_str += f'  - {name}: {purpose}\n'
+                        self.register_file(name, purpose)
                 elif isinstance(files, list):
                     for file_info in files:
                         if 'filename' in file_info and 'description' in file_info:
                             context_str += f'  - {file_info["filename"]}: {file_info["description"]}\n'
+                            self.register_file(file_info["filename"], file_info["description"])
                         else:
                             context_str += f'  - {file_info}\n'
-            for item in instructions:
-                if not item:
-                    continue
-                tasks.append(dict(instruction=item, context=context_str))
-        self.send_message(num_tasks=len(tasks))
-        if not tasks:
+            else:  # caller forgot to specify what files are there.  we can fill the blank
+                context_str += self.get_file_descriptions()
+        instructions = [item for item in instructions if item]
+        if not instructions:
             return 'You must provide `instruction` for the `delegate` command'
-        result = ''
-        for i, task in enumerate(tasks):
-            if len(task) > 1:
-                result += f'Instruction `{task["instruction"]}` returns: '
-            result += self.do_task(task) + '\n'
-        return result
+        num_tasks = len(instructions)
+        self.send_message(num_tasks=num_tasks)
+        results = []
+        for i in range(num_tasks):
+            results.append(self.do_task(i, instructions, context_str, results))
+        return '\n'.join(f'Instruction `{instructions[i]}` returns: {item}' for i, item in enumerate(results))
 
-    def do_task(self, task):
+    def do_task(self, index, instructions, context, prev_results):
         # task configuration
         worker_name = str(uuid.uuid4())[:8]
+        instruction = instructions[index]
         fixed_instruction = 'You must report if you are successful with `answer`. It has to be a complete and standalone answer and does not refer to anything previously discussed. Anything that you are asked to answer or create must be provided either in answer directly, or in files which you explicitly name in answer.  You must specify filenames and variable names explicitly in the answer text. '
         escalation_level = [
             {'T': 0.3, 'extra_instruction': 'Do not delegate if your goal can be achieved with one single command.'},
@@ -125,7 +128,17 @@ Ask workers to create files as their output.  Do not create separate steps to sa
         ]
         model = 'gpt-4'  # gpt 3.5 simply doesn't work
 
-        self.send_message(name=worker_name, **task)
+        self.send_message(name=worker_name, instruction=instruction, context=context)
+        if len(instructions) > 1:
+            context += 'This is one step in a series of tasks. '
+            if index:
+                context += 'Previous steps and results:\n'
+                for prev_i, prev_r in zip(instructions, prev_results):
+                    context += f'    {prev_i}: {prev_r}\n'
+            if index < len(instructions) - 1:
+                context += 'Steps after this one:\n'
+                for next_i in instructions[index+1:]:
+                    context += f'    {next_i}\n'
         for i, setting in enumerate(escalation_level):
             # create a conversation for the subtask
             if i:
@@ -139,7 +152,7 @@ Ask workers to create files as their output.  Do not create separate steps to sa
                 model='gpt-4',
                 metadata=self.metadata,
                 model_options={'temperature': setting['T'], 'max_tokens': 1200},
-                system_prompt=task['context'],
+                system_prompt=context,
                 disable=disable,
                 essential_only=False,
             )
@@ -154,13 +167,13 @@ Ask workers to create files as their output.  Do not create separate steps to sa
                 disable=disable,
                 stack=stack,
             )
-            prompt = task['instruction'].strip() + '\n' + fixed_instruction + setting['extra_instruction']
+            prompt = instruction.strip() + '\n' + fixed_instruction + setting['extra_instruction']
             # self.send_message(name=worker_name, prompt=prompt, context=task['context'])
             try:
                 answer = driver.send(prompt)
                 self.send_message(name=worker_name, answer=answer)
             except Exception as e:
-                print(f'Exception occured in delegate worker: {e}')
+                print(f'Exception occured in worker: {e}')
                 import traceback
                 traceback.print_exc()
                 # for entry in conv.history:
@@ -168,4 +181,4 @@ Ask workers to create files as their output.  Do not create separate steps to sa
                 continue
             # finally:
             return answer
-        return 'Delegate worker is not able to finish the task. Please provide an alternative or simpler task.'
+        return 'Delegate failed. Provide an alternative or simplify task.'
