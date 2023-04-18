@@ -73,7 +73,6 @@ reader example:
 
     def summarize_text(self, text, description=""):
         lines = text.split('\n')
-        total_tokens = 0
         included = []
         lines.append('')
         current_summary = ''
@@ -83,8 +82,10 @@ reader example:
             "Text:\n```" + current_summary + '\n'
                 )
         start = 0
+        total_tokens = token_count(base_text, self.summarization_model)
+
         toks = [token_count(line, self.summarization_model) for line in lines]
-        self.send_message(info=f'Total lines: {len(lines)-1}. Tokens: {sum(toks)}. Summarizations~ {int(math.ceil(sum(toks)/2000))}')
+        self.send_message(info=f'Total lines: {len(lines)-1}. Tokens: {sum(toks)}. Summarizations~ {int(math.ceil(sum(toks)/(self.max_tokens-total_tokens)))}')
         for i, (line, tokens) in enumerate(zip(lines, toks)):
             line = line.strip()
             if total_tokens + tokens <= self.max_tokens and i < len(lines) - 1:
