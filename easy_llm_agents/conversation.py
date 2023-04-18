@@ -4,6 +4,7 @@ Will try to be as agnostic as possible when it comes to models but I can only te
 """
 import json
 from .clients import get_completion
+from .utils import token_count
 
 
 class AnswerTruncated(Exception):
@@ -24,7 +25,9 @@ class LLMConversation(object):
         ai_persona="",    # What role the AI should play as
         summary='',       # summary of previous conversations
         system_prompt="", 
-        metadata=None,    # metadata attached to the conversation 
+        metadata=None,    # metadata attached to the conversation
+        summarization_threshold=10,   # Perform summarization when history reaches this length
+        summarization_tail=4,         # last few messages in history will not be summarized
     ):
         """Create a conversation with the LLM
         
@@ -43,6 +46,9 @@ class LLMConversation(object):
         self.ai_persona = ai_persona
         self.metadata = metadata or {}
         self.summary = summary
+        self.summarization_threshold = summarization_threshold
+        self.summarization_tail = summarization_tail
+        
     
     def talk(self, content, footnote=None, raise_if_truncated=False):
         """Talk to the model and return the results
@@ -114,5 +120,19 @@ class LLMConversation(object):
         
     def summarize(self):
         """Summarize the conversation"""
-        # not yet implemented
-        pass
+        if len(self.history) > self.summarization_threshold:
+            to_summarize = '\n'.join(
+                f'{entry["role"]}: {entry["content"]}'
+                for entry in self.history[:-self.summarization_tail]
+            )
+            if self.summary:
+                current_summary = f"Summary of earlier exchanges: ```{self.summary}```"
+            else:
+                current_summary = ''
+            prompt = f"""This is a series of exchanges between a user and an assistant which shall be referred to as "the assistant",  which issues commands in JSON format.   Please extract any information that will be helpful for later conversations.  Keep all filenames and their descriptions.\n{current_summary}\nExchanges: ```{to_summarize}```"""
+            if token_count(prompt, 'gpt-3.5-turbo') < 2500:
+                model = 'gpt-3.5-turbo'
+            else:
+                model = 'gpt-4'
+            self.summary = get_completion(prompt, model=model, temperature=0.2, max_tokens=1500, text_only=True)
+            self.history = self.history[-self.summarization_tail:]

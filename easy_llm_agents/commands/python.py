@@ -31,7 +31,7 @@ def exec_and_return(script, globals=None, locals=None):
 
 class PythonCommand(BaseCommand,
     command='python',
-    description="""Submit Python code that perform complex tasks or computations. Printouts or error messages will be returned to you. You should not use this for the sole purpose of creating files. The content must be a Python dictionary with fields:
+    description="""Submit Python code that perform complex tasks or computations. Printouts or error messages will be returned to you. If you do not explicitly create a file it will not be created. The content must be a Python dictionary with fields:
     - code: Required field.  A string containing the code snippet
     - request_file: Optional. Request files to be supplied; 
     - save_as:  Optional. String. Filename for the code to be saved as; do not include path.

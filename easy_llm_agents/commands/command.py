@@ -173,12 +173,13 @@ Examples are for showing formats only.  Do not use any information within or dis
 
     response_limit = 3000
 
-    def __init__(self, content='', summary='', metadata=None, messenger=None):
+    def __init__(self, content='', summary='', metadata=None, messenger=None, stack=()):
         """Initialize a task with the data from the command and metadata from driving program"""
         self.content = content
         self.summary = summary
         self.metadata = metadata or {}
         self.messenger = messenger or (lambda *args, **kwargs: None)
+        self.stack = list(stack)
 
     def __init_subclass__(cls,
         command,
@@ -231,7 +232,7 @@ Examples are for showing formats only.  Do not use any information within or dis
         return result
     
     @classmethod
-    def from_response(cls, response, overseer, messenger=None, metadata=None, disable=(), essential_only=False):
+    def from_response(cls, response, overseer, messenger=None, metadata=None, disable=(), essential_only=False, stack=()):
         """Construct task objects based on commands issued by the Agent
         
         Try to be as lenient as possible to make it easier on the AI
@@ -260,7 +261,7 @@ Examples are for showing formats only.  Do not use any information within or dis
                 permission = overseer(cmd, summary, content)
                 if permission is not None and permission != 'GRANTED!':
                     raise CommandRejected(f'Command {cmd} rejected: ' + str(permission))
-                tasks.append(CommandClass(content=content, summary=summary, metadata=metadata, messenger=messenger))
+                tasks.append(CommandClass(content=content, summary=summary, metadata=metadata, messenger=messenger, stack=stack))
         if not tasks:
             print('AI did not use a valid command.  Resending instructions')
         return {'tasks': tasks, 'unknown': unknown, 'disabled': disabled}
@@ -283,12 +284,12 @@ Examples are for showing formats only.  Do not use any information within or dis
     Information requested will be returned in next prompt.  If a command does not produce the expected effect, take a note to yourself about why do you think that happened, and make sure you try a different approach instead of keep repeating a failed one.
     Do not add any explanations outside of the list, do not enclose it in quotation, and speak to the user only through commands.
     The full list of valid commands are:\n"""
-        for command, task_class in cls._registry.items():
+        for command, TaskClass in cls._registry.items():
             if command in disable:
                 continue
-            if not task_class.essential and essential_only:
+            if not TaskClass.essential and essential_only:
                 continue
-            command_list += f' - `{command}`: {task_class.description}\n'
+            command_list += f' - `{command}`: {TaskClass.description}\n'
         command_list += 'Full list of valid commands: ' + str(list(cmd for cmd in cls._registry if cmd not in disable)) + '\n'
         return command_list
 
@@ -300,11 +301,14 @@ Examples are for showing formats only.  Do not use any information within or dis
         qa=handlers.absent_qa,
         messenger=None,
         max_ai_cycles=20,
-        essential_only=False,
+        essential_only=True,
         work_dir=None,
+        log_file=None,
+        disable=(),
+        stack=()
     ):
         """Start a driver from a conversation"""
-        driver = cls.driver(conversation, overseer, qa, messenger, max_ai_cycles=max_ai_cycles, essential_only=essential_only, disable=(), work_dir=work_dir)
+        driver = cls.driver(conversation, overseer, qa, messenger, max_ai_cycles=max_ai_cycles, essential_only=essential_only, disable=disable, work_dir=work_dir, log_file=log_file, stack=stack)
         next(driver)
         return driver
 
@@ -319,11 +323,15 @@ Examples are for showing formats only.  Do not use any information within or dis
         ai_persona='',
         model_options=None,
         metadata=None,
+        essential_only=True,
+        disable=(),
     ):
         if context:
             system_prompt += '\n' + context
         system_prompt += '\n' + BaseCommand.additional_context
         for cls in cls._registry.values():
+            if not cls.essential and essential_only or cls.command in disable:
+                continue
             if cls.additional_context:
                 system_prompt += '\n' + cls.additional_context
         options = cls.default_options.copy()
@@ -343,7 +351,9 @@ Examples are for showing formats only.  Do not use any information within or dis
         max_ai_cycles=20,
         disable=(),
         essential_only=False,
-        work_dir=None
+        work_dir=None,
+        log_file=None,
+        stack=(),
     ):
         response = 'How can I help you?'
         human_input = ''
@@ -373,24 +383,32 @@ Examples are for showing formats only.  Do not use any information within or dis
                         raise_if_truncated=True,
                     )
                 except AnswerTruncated:
-                    lm_response = conversation.talk(
+                    llm_response = conversation.talk(
                         prompt,
                         footnote=cls.generate_command_list(disable=disable, essential_only=essential_only) +
-                            '\nIn this response you can only use ONE command to avoid exceeding token limit.\n',
+                            '\nIn this response you can only use ONE command to avoid exceeding token limit. Keep your command as succinct as possible.\n',
                         raise_if_truncated=True,
                     )
+                if log_file:
+                    with ChangeDir(work_dir), open(log_file, 'w+') as lf:
+                        lf.write(json.dumps(conversation.history, quote_keys=True, indent=2))
                 # Now work through all generated tasks
                 response = ''
                 for icycle in range(max_ai_cycles):
+                    invalid = False
                     # Parse tasks
                     try:
-                        tasks = cls.from_response(llm_response, overseer=overseer, messenger=messenger, metadata=conversation.metadata, disable=disable, essential_only=essential_only)
+                        tasks = cls.from_response(llm_response, overseer=overseer, messenger=messenger, metadata=conversation.metadata, disable=disable, essential_only=essential_only, stack=stack)
                     except CommandRejected as e:
                         prompt = str(e)
+                        invalid = True
                     except InvalidFormat as e:
                         prompt = str(e)
+                        invalid = True
                     else:
                         prompt = ''
+                        if tasks['unknown'] or tasks['disabled']:
+                            invalid = True
                         for name in tasks['unknown']:
                             prompt += f'Command {name} does not exist. Please only use valid commands.\n'
                         for name in tasks['disabled']:
@@ -407,15 +425,18 @@ Examples are for showing formats only.  Do not use any information within or dis
                                     prompt_i = task.generate_prompt()
                                 if prompt_i:
                                     if len(str(prompt_i)) > cls.response_limit:
-                                        prompt += f'`{task.command}` return is truncated because it is too long ({len(prompt_i)} characters).  Here are the first 200 characters: {str(prompt_i)[:cls.response_limit]}\n'
+                                        prompt += f'\n`{task.command}` return is truncated because it is too long ({len(prompt_i)} characters).  Here are the first 200 characters: {str(prompt_i)[:cls.response_limit]}\n'
                                     else:
-                                        prompt += f'`{task.command}` returns: {prompt_i}\n'
+                                        prompt += f'\n`{task.command}` returns: {prompt_i}\n'
                             except Exception as e:
                                 print(f'Exception thrown in command {task.command}: {e}\n{tb.format_exc()}')
                                 print(f'Task content: {task.content}')
-                                prompt += f"Command {task.command} thrown exception {e}\n{tb.format_exc()}"
+                                prompt += f"Command {task.command} thrown exception {e}\n{tb.format_exc()}"                        
                     if response:
-                        break
+                        if invalid:
+                            prompt += 'Answer not returned to user because command had errors\n'
+                        else:
+                            break
                     if not prompt:
                         prompt = 'Continue'
                     try:
@@ -430,6 +451,9 @@ Examples are for showing formats only.  Do not use any information within or dis
                             footnote=cls.generate_command_list(disable=disable, essential_only=essential_only) + 
                                 '\nIn this response you can only use ONE command to avoid exceeding token limit.\n',
                         )
+                    if log_file:
+                        with ChangeDir(work_dir), open(log_file, 'w+') as lf:
+                            lf.write(json.dumps(conversation.history, quote_keys=True, indent=2))
                 else:
                     print(f"<DRIVER> Max AI autopilot cycles reached. Ejecting to human control")
                     response += 'Maximum AI autopilot cycles reached. Please confirm you want to continue.'

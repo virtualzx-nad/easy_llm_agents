@@ -8,29 +8,50 @@ from .command import BaseCommand, handlers
 class DelegateCommand(BaseCommand,
     command='delegate',
     essential=True,
-    description=f'''Delegate a list of tasks to workers.  You should always try to divide your objective to smaller tasks before you delegate them to workers.  Workers can only see their instruction and cannot see past conversations, so you need to provide sufficient context for them.   Provide the following fields in content:
-     - `instruction`: list of instructions.  Each worker will be given one instruction.
-     - `context':  any context information that the workers need to know to fulfill the instruction.  You must explicitly specify any artifacts such as URL, filenames, resource names that are involved or as output.  Workers answering the same command see the same context, but workers answering different commands cannot see each others' contexts.
+    description=f'''Delegate a list of tasks to workers.  You should always try to divide your objective to smaller tasks before you delegate them to workers.  Workers can only see their instruction and cannot see past conversations, so you need to provide sufficient context for them.  Provide the following fields in content:
+     - `instruction`: list of instructions.  Each worker will be given one instruction and do work in order.
+     - `files`: Files and what data are stored in them; can be new or old files.  Workers use these to exchange information.
+     - `context':  any context information that the workers need to know to fulfill the instruction. Workers answering the same command see the same context, but workers answering different commands cannot see each others' contexts.
 ''',
     additional_context='''
 Another example:
-<user>: write a book about kuabpajib and save to kuabpajib.txt
+<user>: Send a text message to my sis about the hottest TV shows now
 <agent>: [
   {
     "command": "self_note",
-    "summary": "Divide the book into chapters",
-    "content": ["Introduction", "Basic Kuabpajib", "Advanced Kuabpajib", "Future of Kuabpajib", "Conclusion"]
+    "summary": "Plan steps to achieve goal",
+    "content": ["Find what TV shows are currently hottest", "Write text message", "Send text to Yazadaya"]
   },
   {
     "command": "delegate",
-    "summary": "write individual chapters of `Kuabpajib` and save to file",
+    "summary": "Determine the hottest TV shows",
     "content": {
-      "instruction": ["Write chapter `Introduction`", "Write chapter `Basic Kuabpajib`", "Write chapter `Advanced Kuabpajib`", "Write chapter `Future of Kuabpajib`", "Write chapter `Conclusion`"],
-      "context": "You are writing a book about Kuabpajib that have five chapters: Introduction, Basic Kuabpajib, Advanced Kuabpajib, Future of Kuabpajib, Conclusion.  The book is saved to file `kuabpajib.txt`"
+      "instruction": [
+          "Determine which TV shows are currently hottest and save list to `hot_tv_shows.txt`",
+          "Write a text message about hottest TV shows and save to `message_draft.txt`",
+          "Send the text message to the user's sister"
+      ],
+      "files": {
+        "hot_tv_shows.txt": "List of currently hottest TV shows",
+        "message_draft.txt": "Draft of the text message",
+      },
+      "context": "Writing and sending a text message about currently hottest TV shows to the user's sister."
     }
   }
 ]
-<user>: `delegete` returns: The first two chapters are saved to file kuabpajib.txt
+<user>: `delegete` returns: The text message has been sent to your sister. 
+<assistant>: [
+  {
+    "command": "self_note",
+    "summary": "Verify task is completed",
+    "content": ["delegate reports text message has been sent."]
+  },
+  {
+    "command": "answer",
+    "summary": "Answer only when success is verified",
+    "content": "The text message has been sent to your sister."
+  }
+]
 '''
 ):
     def get_message_pipe(self, name):
@@ -47,7 +68,6 @@ Another example:
         tasks = []
         for entry in content:
             # first extract all the contents
-            worker_name = str(uuid.uuid4())[:8]
             instructions = entry.get('instruction', [])
             if not isinstance(instructions, list):
                 instructions = [instructions]
@@ -55,12 +75,24 @@ Another example:
             if not isinstance(context, list):
                 context = [context]
             context_str = ''
+            files = entry.get('files', {})
             for item in context:
                 if isinstance(item, dict):
                     item = ', '.join(f'{key}:{value}' for key, value in item.items())
                 else:
                     item = str(item)
                 context_str += item + '\n'
+            if files:
+                context_str += '\nHere is a list of files, if one describes your output you should write to the file and if one describes information you need you should use that file:\n'
+                if isinstance(files, dict):
+                    for name, purpose in files.items():
+                        context_str += f'  - {name}: {purpose}\n'
+                elif isinstance(files, list):
+                    for file_info in files:
+                        if 'filename' in file_info and 'description' in file_info:
+                            context_str += f'  - {file_info["filename"]}: {file_info["description"]}\n'
+                        else:
+                            context_str += f'  - {file_info}\n'
             for item in instructions:
                 if not item:
                     continue
@@ -80,7 +112,7 @@ Another example:
         worker_name = str(uuid.uuid4())[:8]
         fixed_instruction = 'You must report if you are successful with `answer`. It has to be a complete and standalone answer and does not refer to anything previously discussed. Anything that you are asked to answer or create must be provided either in answer directly, or in files which you explicitly name in answer.  You must specify filenames and variable names explicitly in the answer text. '
         escalation_level = [
-            {'T': 0.3, 'extra_instruction': 'Do not delegate if your goal can be achieved with 3 or less steps.'},
+            {'T': 0.3, 'extra_instruction': 'Do not delegate if your goal can be achieved with one single command.'},
             {'T': 0.5, 'extra_instruction': 'Be creative and break the problem into smaller and easier problems, then delegate them.'},
             {'T': 0.6, 'extra_instruction': 'Be creative and break the problem into smaller and easier problems, then delegate them.'},
             {'T': 0.9, 'extra_instruction': 'Break the problem into smaller tasks and delegate each.  If you cannot solve the problem, summarize your findings'}
@@ -90,14 +122,32 @@ Another example:
         self.send_message(name=worker_name, **task)
         for i, setting in enumerate(escalation_level):
             # create a conversation for the subtask
-            self.send_message(name=worker_name, level=i, setting=setting)
-            conv = LLMConversation(
-                model=model,
+            if i:
+                self.send_message(name=worker_name, level=i, setting=setting)
+            stack = self.stack + [self]
+            if len(stack) > 2:
+                disable = [self.command]
+            else:
+                disable = []
+            conv = BaseCommand.create_conversation(
+                model='gpt-4',
+                metadata=self.metadata,
                 model_options={'temperature': setting['T'], 'max_tokens': 1200},
                 system_prompt=task['context'],
-                metadata=self.metadata,
+                disable=disable,
+                essential_only=False,
             )
-            driver = BaseCommand.get_driver(conv, messenger=self.get_message_pipe(worker_name), work_dir=self.metadata.get('work_dir')) #, overseer=handlers.do_nothing, qa=handlers.do_nothing)
+            driver = BaseCommand.get_driver(
+                conv,
+                messenger=self.get_message_pipe(worker_name),
+                work_dir=self.metadata.get('work_dir'),
+                essential_only=False,
+                overseer=handlers.do_nothing,
+                qa=handlers.do_nothing,
+                log_file=f'{worker_name}.log',
+                disable=disable,
+                stack=stack,
+            )
             prompt = task['instruction'].strip() + '\n' + fixed_instruction + setting['extra_instruction']
             # self.send_message(name=worker_name, prompt=prompt, context=task['context'])
             try:
@@ -107,8 +157,8 @@ Another example:
                 print(f'Exception occured in delegate worker: {e}')
                 import traceback
                 traceback.print_exc()
-                for entry in conv.history:
-                    print(f"{entry['role']}: {entry['content']}")
+                # for entry in conv.history:
+                #     print(f"{entry['role']}: {entry['content']}")
                 continue
             # finally:
             return answer
