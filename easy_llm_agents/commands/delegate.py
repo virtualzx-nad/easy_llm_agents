@@ -8,11 +8,10 @@ from .command import BaseCommand, handlers
 class DelegateCommand(BaseCommand,
     command='delegate',
     essential=True,
-    description=f'''Delegate a list of tasks to workers.  You should always try to divide your objective to smaller tasks before you delegate them to workers.  Workers can only see their instruction and cannot see past conversations, so you need to provide sufficient context for them.
+    description=f'''Delegate a list of tasks to workers.  You should always try to divide your objective to smaller tasks before you delegate them to workers.  You need to provide sufficient context for workers, and repeat any relevant information mentioned or returned in previous commands.  You must provide filenames for the worker so they can save information to be reused later.
 ''',
     additional_context='''
-When using `delegate` command, you must determine any intermediate information and assign files to store them.  Names of all intermedaite files and files given to you that contains context must also be provided in `files` field.
-Example:
+`delegate` example:
 <user>: user instruction: Send a love letter based on `template.txt` to each of pikglk's brothers through email
 <assistant>: [
   {
@@ -79,7 +78,7 @@ Example:
             instructions = entry.get('instruction', [])
             if not isinstance(instructions, list):
                 instructions = [instructions]
-            context = entry.get('context')
+            context = entry.get('context', '')
             if not isinstance(context, list):
                 context = [context]
             context_str = ''
@@ -89,7 +88,9 @@ Example:
                     item = ', '.join(f'{key}:{value}' for key, value in item.items())
                 else:
                     item = str(item)
-                context_str += item + '\n'
+                if item:
+                    context_str += item + '\n'
+            known_files = self.get_files()
             if files:
                 context_str += '\nHere is a list of files, if one describes your output you should write to the file and if one describes information you need you should use that file:\n'
                 if isinstance(files, dict):
@@ -101,6 +102,8 @@ Example:
                         if 'filename' in file_info and 'description' in file_info:
                             context_str += f'  - {file_info["filename"]}: {file_info["description"]}\n'
                             self.register_file(file_info["filename"], file_info["description"])
+                        elif file_info in known_files:
+                            context_str += f'  - {file_info}: {known_files[file_info]}\n'
                         else:
                             context_str += f'  - {file_info}\n'
             else:  # caller forgot to specify what files are there.  we can fill the blank

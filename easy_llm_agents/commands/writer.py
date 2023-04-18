@@ -1,11 +1,9 @@
 """A writer that writes an entire file for you"""
 import re
 
-import tiktoken           # openai tokenizer.  for counting tokens
-
 from .command import BaseCommand
 from ..clients import get_completion
-
+from ..utils import summarize_text, token_count, get_relevant_files
 
 
 def get_tail(text):
@@ -46,8 +44,6 @@ writer example:
             content = self.content
         missing = False
         output = []
-        encoding = tiktoken.encoding_for_model('gpt-4')
-        summarization_encoding = tiktoken.encoding_for_model('gpt-3.5-turbo')
         
         tasks = []
 
@@ -62,14 +58,23 @@ writer example:
             if context_file:
                 if isinstance(context_file, str):
                     context_file = [context_file]
-                for context_fname in context_file:
-                    try:
-                        with open(context_fname) as f:
-                            context += f'\nContent of {context_fname}:\n' + f.read() + '\n'
-                    except Exception as e:
-                        output.append(f"Context file {context_fname} cannot be loaded")
             else:
-                context += self.get_file_descriptions()
+                context_file = get_relevant_files(
+                    self.get_files(),
+                    f'Create file {filename}',
+                    instruction,
+                    context
+                )
+            for context_fname in context_file:
+                try:
+                    with open(context_fname) as f:
+                        text = f.read()
+                        if token_count(text) > 1000:
+                            text = summarize_text(text, 'preserve any important details')
+                        context += f'\nContent of {context_fname}:\n' +  + '\n'
+                except Exception as e:
+                    output.append(f"Context file {context_fname} cannot be loaded")
+
             if isinstance(filename, list):
                 for fname in filename:
                     tasks.append([fname, instruction, context])
@@ -77,36 +82,36 @@ writer example:
                 tasks.append([filename, instruction, context])
             
         for filename, instruction, context in tasks:
-            self.send_message(filename=filename, instruction=instruction, context=context[:100])
+            self.send_message(filename=filename, instruction=instruction, context=context[:200])
             current_summary = ''
             tail = ''
             context_prompt = f"You will be given an instruction and to create file `{filename}`."
             context_prompt += 'Please ensure the format and the content match the suffix of the file'
             if context:
                 context_prompt = "Here are some context that will help you write it: \n" + context
-            context_tokens = len(encoding.encode(context_prompt)) + 1
+            context_tokens = token_count(context_prompt) + 1
             with open(filename, 'w') as f:
                 pass
             while True:
                 prompt = instruction
                 if current_summary:
                     prompt += '\nHere is a summary of the portion of the file you have already written:' + current_summary
-                prompt_tokens = len(encoding.encode(prompt))
-                tail_tokens = len(encoding.encode(tail))
+                prompt_tokens = token_count(prompt)
+                tail_tokens = token_count(tail)
                 top_choice = get_completion(
                     [{'role': 'user', 'content': prompt}, {'role': 'assistant', 'content': tail}],
                     model='gpt-4',
                     system_prompt=context_prompt,
                     temperature=0.7,
-                    max_tokens=8000 - context_tokens - prompt_tokens - tail_tokens,
+                    max_tokens=8000-context_tokens-prompt_tokens-tail_tokens,
                     text_only=False,
                 )['choices'][0]
                 text = top_choice['message']['content']
                 with open('writer.log', 'a+') as wl:
-                    wl.write(f'FILENAME:{filename}\n')
-                    wl.write(f'PROMPT:{prompt}\n')
-                    wl.write(f'CONTEXT:{context_prompt}\n')
-                    wl.write(f'COMPLETION:{text}\n')
+                    wl.write(f'[filename]:{filename}\n')
+                    wl.write(f'[prompt]:{prompt}\n')
+                    wl.write(f'[context]:{context_prompt}\n')
+                    wl.write(f'[completion]:{text}\n\n\n')
                 with open(filename, 'a') as f:
                     f.write(text)
                 if top_choice['finish_reason'] != 'length':
@@ -120,11 +125,12 @@ writer example:
                     summary_prompt,
                     model='gpt-3.5-turbo',
                     temperature=0.2,
-                    max_tokens=4000-len(summarization_encoding.encode(summary_prompt)),
+                    max_tokens=3900-token_count(summary_prompt),
                     text_only=True,
                 )
             output.append(f'File {filename} was written')
-            self.register_file(filename, instruction)
+            self.register_file(filename, f'Created by instruction<{instruction}>')
         if missing:
             output.append('filename and instructions must be provided in command content.')
         return '\n'.join(output)
+
