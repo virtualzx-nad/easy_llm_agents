@@ -5,3 +5,4 @@ from .search import SearchCommand
 from .reader import ReaderCommand
 from .delegate import DelegateCommand
 from .writer import WriterCommand
+from .python import PythonCommand

@@ -1,14 +1,18 @@
 """Delegate a hard job to a worker"""
+import ast
+import json
 import uuid
 
 from ..conversation import LLMConversation
+from ..utils import get_relevant_files
+from ..clients import get_completion
 from .command import BaseCommand, handlers
 
 
 class DelegateCommand(BaseCommand,
     command='delegate',
     essential=True,
-    description=f'''Delegate a list of tasks to workers.  You should always try to divide your objective to smaller tasks before you delegate them to workers.  You need to provide sufficient context for workers, and repeat any relevant information mentioned or returned in previous commands.  You must provide filenames for the worker so they can save information to be reused later.
+    description=f'''Delegate a list of tasks to workers.  You should always try to divide your objective to smaller tasks before you delegate them to workers.  You need to provide sufficient context for workers, and repeat any relevant information mentioned or returned in previous commands.  Do not create separate steps to Each worker should save their own files.
 ''',
     additional_context='''
 `delegate` example:
@@ -31,13 +35,13 @@ class DelegateCommand(BaseCommand,
       "instruction": [
         "Determine who are Pikglk's brothers and save to `brothers.txt`",
         "Find each brothers' email and save to `brother_emails.txt`"
-      ]
-    },
-    "files": {
-      "brothers.txt": "A list of Pikglk's brothers",
-      "brother_emails.txt": "Each brothers' emails",
-    },
-    "context": "You are writing lover letters to each of Pikglk's brothers. To do that you need to determine who are his brothers and their emails."
+      ],
+      "files": {
+        "brothers.txt": "A list of Pikglk's brothers",
+        "brother_emails.txt": "Each brothers' emails",
+      },
+      "context": "You are writing lover letters to each of Pikglk's brothers. To do that you need to determine who are his brothers and their emails."
+    }
   }
 ]
 <user>: `delegete` returns: pikglk has two brothers, Kigklg(kigklg@email.com) and Gkigkl(gkigkl@email.com)
@@ -49,14 +53,14 @@ class DelegateCommand(BaseCommand,
       "instruction": [
         "Write a love letter for Kigklg and save to `kigklg.txt` based on the template in `template.txt`",
         "Write a love letter for Gkigkl and save to `gkigkl.txt` based on the template in `template.txt`"
-      ]
-    },
-    "files": {
-      "template.txt": "Template for the love letters",
-      "kigklg.txt": "A love letter to Kigklg",
-      "gkigkl.txt": "A love letter to Gkigkl"
-    },
-    "context": "You are writing lover letters based on a template to each of Pikglk's brothers, Kigklg and Gkigkl, to be sent through email."
+      ],
+      "files": {
+        "template.txt": "Template for the love letters",
+        "kigklg.txt": "A love letter to Kigklg",
+        "gkigkl.txt": "A love letter to Gkigkl"
+      },
+      "context": "You are writing lover letters based on a template to each of Pikglk's brothers, Kigklg and Gkigkl, to be sent through email."
+    }
   }
 ]
 '''
@@ -81,6 +85,8 @@ class DelegateCommand(BaseCommand,
             context = entry.get('context', '')
             if not isinstance(context, list):
                 context = [context]
+            if len(instructions) > 1:
+                instructions = self.combine_steps(instructions, '\n'.join(context))
             context_str = ''
             files = entry.get('files', {})
             for item in context:
@@ -91,23 +97,38 @@ class DelegateCommand(BaseCommand,
                 if item:
                     context_str += item + '\n'
             known_files = self.get_files()
+            relevant_files = get_relevant_files(
+                self.get_files(),
+                self.summary,
+                instructions,
+                context_str,
+            )
+            processed = []
             if files:
                 context_str += '\nHere is a list of files, if one describes your output you should write to the file and if one describes information you need you should use that file:\n'
                 if isinstance(files, dict):
                     for name, purpose in files.items():
                         context_str += f'  - {name}: {purpose}\n'
                         self.register_file(name, purpose)
+                        processed.append(name)
                 elif isinstance(files, list):
                     for file_info in files:
                         if 'filename' in file_info and 'description' in file_info:
                             context_str += f'  - {file_info["filename"]}: {file_info["description"]}\n'
                             self.register_file(file_info["filename"], file_info["description"])
+                            processed.append(file_info["filename"])
                         elif file_info in known_files:
                             context_str += f'  - {file_info}: {known_files[file_info]}\n'
+                            processed.append(file_info)
                         else:
                             context_str += f'  - {file_info}\n'
-            else:  # caller forgot to specify what files are there.  we can fill the blank
-                context_str += self.get_file_descriptions()
+                            processed.append(file_info)
+            relevant_files = [name for name in relevant_files if name not in processed]
+            if relevant_files and not files:
+                context_str += '\nHere is a list of files, if one describes your output you should write to the file and if one describes information you need you should use that file:\n'
+            for name in relevant_files:
+                context_str += f'  - {name}: {known_files[name]}\n'
+
         instructions = [item for item in instructions if item]
         if not instructions:
             return 'You must provide `instruction` for the `delegate` command'
@@ -135,13 +156,14 @@ class DelegateCommand(BaseCommand,
         if len(instructions) > 1:
             context += 'This is one step in a series of tasks. '
             if index:
-                context += 'Previous steps and results:\n'
+                context += 'For context, previous steps and results:\n'
                 for prev_i, prev_r in zip(instructions, prev_results):
                     context += f'    {prev_i}: {prev_r}\n'
             if index < len(instructions) - 1:
-                context += 'Steps after this one:\n'
+                context += 'Steps after this one (that you will not do):\n'
                 for next_i in instructions[index+1:]:
                     context += f'    {next_i}\n'
+            context += 'Do not perform tasks that are assigned to other workers\n'
         for i, setting in enumerate(escalation_level):
             # create a conversation for the subtask
             if i:
@@ -185,3 +207,66 @@ class DelegateCommand(BaseCommand,
             # finally:
             return answer
         return 'Delegate failed. Provide an alternative or simplify task.'
+    
+    def combine_steps(self, steps, context):
+        """The agent sometimes overly divide the tasks.  regroup them properly here"""
+        prompt = f"""You will be given a list of tasks. You will group them to be assigned to workers.
+
+If results of a task need to be saved to a file, it have to be done by the same worker.  This is because workers can write files or read files other workers created, but they cannot pass large amount of information between them outside of files.  As such, one worker cannot save the output of another worker to a file.   Saving files should never be a separate task.
+
+On the other hand, some tasks can be partitioned into parallel tasks that can be performed by multiple workers.   If tasks can be divided on many levels, do the division on the highest level only.
+
+Please divide the tasks into groups so that each group can be performed by a separate worker and data transfer between workers is minimized.
+
+First discuss how tasks should be separated and grouped in a comment block.
+At the end of the comment, note that if the groups discussed in the comments are complete, and if not so make sure you use the complete list.
+
+Then write one Python list, each entry is a string that  combines all tasks for one group of tasks.  It must contain all groups no matter how many groups there are. Do not provide any explanations or descriptions.  Always return the entire list and make no omission.  The list must be directly evaluable in Python.  Do not simplify or summarize any information in the task.  Keep all details, instructions and filenames.
+
+Example:
+'''
+Tasks:
+  - read technical design `design.doc`
+  - based on this create module `a` with functions `a1`, `a2`, module `b` and module `c` with functions `c1`, `c2` and `c3`
+  - save each module to file in the form of x.py
+Returns this
+# Creation of each module is an isolated task that should be separated.
+# Creation of functions should not be separated because they are deeper level
+# The creation of modules and saving to file need to be grouped together
+# Group 1: Create module `a` with functions `a1` and `a2` and save to `a.py`
+# Group 2: Create module `b` and save to `b.py`
+# Group 3: Create module `c` with functions `c1`, `c2` and `c3` and save to `c.py`
+```python
+[
+  "Create module `a` with functions `a1` and `a2` based on technical design in `design.doc` and save it to file `a.py`",
+  "Create module `b` based on technical design in `design.doc` and and save it to file `b.py`",
+  "Create module `c` with functions `c1`, `c2` and `c3` based on technical design in `design.doc` and and save it to file `c.py`"
+]
+```
+'''
+
+Here are some context for those tasks to help you better perform the grouping:  ```{context}```
+
+Tasks:\n"""
+        for step in steps:
+            prompt += f'  - {step}\n'
+        response = get_completion(prompt, model='gpt-4', temperature=0.2, text_only=True)
+        start = response.find('[')
+        end = response.rfind(']') + 1
+        if start < 0 or end < start:
+            return steps
+        response = response[start:end]
+        try:
+            result = ast.literal_eval(response)
+        except Exception:
+            try:
+                result = json.loads(response)
+            except Exception as e:
+                print('Exception occured when trying to repartition delegate tasks: ', e)
+                print(response)
+                result = steps
+        if steps != result:
+            print(f'Restructure delegate steps: {steps} => {result}')
+        else:
+            print('Restructure did not change steps')
+        return result

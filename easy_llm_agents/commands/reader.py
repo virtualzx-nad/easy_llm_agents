@@ -26,7 +26,7 @@ reader example:
 ):
     summarization_model = 'gpt-3.5-turbo'
     summary_size = 600
-    max_tokens = 2300
+    max_tokens = 2200
 
     def generate_prompt(self):
         if not isinstance(self.content, list):

@@ -7,7 +7,23 @@ from bs4 import BeautifulSoup
 from .command import BaseCommand
 
 
-class SearchCommand(BaseCommand, command='search', description='Search Goole to get top results and URLs. Try your best to construct the most effective query based on your knowledge and choose a sensible result count limit.'):
+class SearchCommand(
+    BaseCommand,
+    command='search',
+    description='Search Goole to get top results and URLs. You must provide `query`, and optionally tbs and tbm only when warranted.  Include `site:` and `filetype:` when and only when it is necessary.',
+    additional_context="""`search` example:
+<user>: what happened in tech today?
+<assistant>: {
+  "command": "search",
+  "summary": "Find last hour's tech news",
+  "content": {
+    "query": "tech",
+    "tbs": "qdr:h",
+    "tbm": "nws"
+  }
+}
+"""
+):
     """Runs Google search and obtain the first page of the result and urls
     
     The AI sometimes provide multiple lines to intend to search multiple items at the same time.  We try and honor that
@@ -29,9 +45,11 @@ class SearchCommand(BaseCommand, command='search', description='Search Goole to 
         for search in keep:
             if not search.get('query'):
                 continue
+            tbs = search.get('tbs')
+            tbm = search.get('tbm')
             size = search.get('size', default_size)
-            self.send_message(query=search["query"], size=size)
-            results.extend(self.google_search(search['query'], max_results=size))
+            self.send_message(query=search['query'], size=size, tbs=tbs, tbm=tbm)
+            results.extend(self.google_search(search['query'], tbs=tbs, tbm=tbm, max_results=size))
         output = []
         for entry in results:
             urls = ', '.join(entry['links'])
@@ -41,12 +59,16 @@ class SearchCommand(BaseCommand, command='search', description='Search Goole to 
         return result
 
     @staticmethod
-    def google_search(query, max_results=10, url="https://www.google.com/search?q={query}"):
+    def google_search(query, max_results=10, url="https://www.google.com/search?q={query}", tbs=None, tbm=None):
         """A quick an simple scraper to get the top results from a search result page"""
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
         }
         escaped_query = urllib.parse.quote(query)
+        if tbs:
+            escaped_query += f'&tbs={tbs}'
+        if tbm:
+            escaped_query += f'&tbm:{tbm}'
         res = requests.get(url.format(query=escaped_query), headers=headers)
 
         soup = BeautifulSoup(res.text, 'html.parser')

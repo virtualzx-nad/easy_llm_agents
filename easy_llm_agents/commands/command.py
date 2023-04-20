@@ -222,12 +222,12 @@ class BaseCommand(object):
             result = [result]
         for entry in result:
             if not entry.get('content'):
-                content = {}
-                for key, value in entry.items():
-                    if key in ('command', 'summary', 'content'):
-                        continue
-                    content[key] = value
-                entry['content'] = content
+                entry['content'] = {}
+            for key, value in entry.items():
+                if key in ('command', 'summary', 'content'):
+                    continue
+                entry['content'][key] = value
+
         return result
     
     @classmethod
@@ -395,7 +395,7 @@ class BaseCommand(object):
                         lf.write(f'<system>: {conversation.system_prompt}\n') 
                         lf.write(f'<summary>: {conversation.summary}\n') 
                         for entry in conversation.history:
-                            lf.write(f'<{entry["role"]}>: {entry["content"]}')
+                            lf.write(f'<{entry["role"]}>: {entry["content"]}\n')
                 # Now work through all generated tasks
                 response = ''
                 for icycle in range(max_ai_cycles):
@@ -460,7 +460,7 @@ class BaseCommand(object):
                             lf.write(f'<system>: {conversation.system_prompt}\n') 
                             lf.write(f'<summary>: {conversation.summary}\n') 
                             for entry in conversation.history:
-                                lf.write(f'<{entry["role"]}>: {entry["content"]}')
+                                lf.write(f'<{entry["role"]}>: {entry["content"]}\n')
                 else:
                     print(f"<DRIVER> Max AI autopilot cycles reached. Ejecting to human control")
                     response += 'Maximum AI autopilot cycles reached. Please confirm you want to continue.'
