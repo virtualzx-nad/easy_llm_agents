@@ -11,14 +11,15 @@ class ReaderCommand(BaseCommand,
     description=f'Obtain info from a page based on URL or filename. Describe what to extract with the description field. If you need original text, explicitly say verbatim in the description; otherwise returns will be summarized. If one reading did not give you the desired content, try to change your instructions. Do not read a file if it only needs to be passed to a worker; pass the filename directly.',
     additional_context="""
 reader example:
-<user>: How do i configure a gagiji on tdotm?
+<user>: How do i configure a gagiji on tdotm?  Save it in `how_to.txt` for future reference
 <assistant>: [
   {
     "command": "reader",
     "summary": "Extract how to configure a gagiji from tdotm manual",
     "content": [{
       "url": "tdotm_manual.pdf",
-      "description": "Information about how to configure a gagiji"
+      "description": "Information about how to configure a gagiji",
+      "save_as": "how_to.txt"
     }]
   }
 ]
@@ -46,7 +47,8 @@ reader example:
             if not url:
                 output.append('You must provide and url in the content of reader command')
                 continue
-            self.send_message(info=f'Extract and summarize {url} with instruction `{description}`')
+            self.send_message(url=url, instruction=description)
+            save_as = entry.get('save_as')
             content, content_type = extract_content(url)
             plain_types = ['text/plain', 'application/json', 'application/csv', 'text/markdown']
             if not content:
@@ -71,6 +73,9 @@ reader example:
                 summary = "Unable to extract info. The page might be dynamic or restricted; try a different URL."
                 self.send_message(info=f'Page {url} has no content')
             output.append(f'url: {url}\n Info: {summary}\n')
+            if save_as:
+                with open(save_as, 'w+') as f:
+                    f.write(summary)
         if not output:
             output = ["You did not provide a valid `url` field in `context` for reader command. "]
         return '\n'.join(output)

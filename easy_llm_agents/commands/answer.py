@@ -6,7 +6,7 @@ from ..utils import SkipMissingDict
 class AnswerCommand(BaseCommand,
     command='answer',
     essential=True,
-    description='Answer a question or report that a requested task has been successfully performed, when you are confident of the results.',
+    description='Answer a question or report that a requested task has been successfully performed, when you are confident of the results.  The content should be a string.',
 ):
     def generate_response_to_human(self):
         if isinstance(self.content, list):

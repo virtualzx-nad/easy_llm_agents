@@ -92,7 +92,7 @@ class WriterCommand(
             self.send_message(filename=filename, instruction=instruction, context=context[:200])
             current_summary = ''
             tail = ''
-            context_prompt = 'You are an AI assistant that writes file contents. We have now improved your code and you no longer have a token size limit; you can go ahead and compose articles of any length. Your return will be converted to files.  You will write clearly and provide any helpful details.'
+            context_prompt = 'You are an AI assistant that writes file contents. We have now improved your code and you no longer have a token size limit; you can go ahead and compose articles of any length. To write a file, simply response with exact content of the file.  Text you return will be directly stored into files.  You will write the content only and include no explanations and do not put the file content in quote.'
             context_prompt += 'If the file already exists, please keep the content the same but edit to improve it. '
             context_prompt += 'Please ensure the format and the content match the suffix of the file'
             if context:
