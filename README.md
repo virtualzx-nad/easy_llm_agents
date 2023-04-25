@@ -1,3 +1,7 @@
+# Note
+The structure here does not work well on llamas.  Redesigning it and will create a different repo and migrate over later.  
+
+
 # easy_llm_agents: Easily enhance language model agents
 
 easy_llm_agents is a versatile Python package for managing and extending language model based agents. It allows you to effortlessly teach the agent new capabilities in a few lines of code and integrate the agent into any project.
