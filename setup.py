@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='easy_llm_agents',
-    version='0.1',
+    name='lm_agents',
+    version='0.0.1',
     description='Easily enhance language model agents',
     author='Xiaolei Zhu',
     author_email='virtualzx@gmail.com',
-    url='git@github.com:virtualzx-nad/easy_llm_agents.git',
+    url='git@github.com:virtualzx-nad/easier_llm_agents.git',
     packages=find_packages(),
     classifiers=[
         'Development Status :: 3 - Alpha',

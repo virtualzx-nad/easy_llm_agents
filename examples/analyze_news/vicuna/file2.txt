@@ -1,0 +1,12 @@
+Here is a code that you can use to write the contents of file2.txt to the console:
+```python
+# The contents of file2.txt
+with open("file2.txt", "r") as file:
+    contents = file.read()
+    print(contents)
+```
+To run this code, save it in a file with a .py extension (e.g. file2.py) and run it with the Python interpreter. The output will be:
+```
+The contents of file2.txt
+```
+This is because the code reads the contents of file2.txt and prints it to the console.

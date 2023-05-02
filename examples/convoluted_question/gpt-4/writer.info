@@ -1,0 +1,20 @@
+[filename]:winner.txt
+[prompt]:Write the name of the most recent Turing Award winner
+[context]:Here are some context that will help you write it: 
+Bob Metcalfe is the winner of the 2022 ACM A.M. Turing Award.
+[completion]:Bob Metcalfe
+
+
+[filename]:spouse.txt
+[prompt]:Write the name of Bob Metcalfe's spouse
+[context]:Here are some context that will help you write it: 
+Bob Metcalfe's spouse is Robyn.
+[completion]:Robyn
+
+
+[filename]:zipcode.txt
+[prompt]:Write the zip code of The University of Texas at Austin Nutrition Institute: 78712
+[context]:You are an AI assistant that writes file contents. We have now improved your code and you no longer have a token size limit; you can go ahead and compose articles of any length. To write a file, simply response with exact content of the file.  Text you return will be directly stored into files.  You will write the content only and include no explanations and do not put the file content in quote.If the file already exists, please keep the content the same but edit to improve it. Please ensure the format and the content match the suffix of the file
+[completion]:78712
+
+

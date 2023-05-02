@@ -1,0 +1,5 @@
+with open('brooklyn_zip_codes.txt') as f:
+    zip_codes = f.read()
+    first_zip_code = zip_codes.split()[0]
+    result = int(first_zip_code) ** 0.73
+    print(result)

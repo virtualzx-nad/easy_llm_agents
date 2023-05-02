@@ -1,0 +1,532 @@
+Here is an example text file:
+```perl
+Example Text File
+================
+
+This is an example text file that demonstrates how text files can be used to store and share information. Text files can be created using a text editor, such as Notepad on Windows or TextEdit on Mac, or using the command line with the `touch` command.
+
+The content of a text file is simply plain text, which can include
+
+1. Plain text - simply
+
+the characters you see on the keyboard, such as letters, numbers, and punctuation.
+
+2. Formatted text - using
+
+markdown or other formatting syntax to add structure and style to the text.
+
+3. Special characters - such as
+
+emojis and special symbols.
+
+In this example, we'll use plain text to demonstrate how to write a text file.
+
+To create a new text file, you can use the `touch` command followed by the name of the file you want to create. For example, to create a new file called `example.txt`, you would use the following command:
+```
+touch example.txt
+```vbnet
+
+To view the contents of a text file, you can use a text editor such as Notepad, TextEdit, or Vim. For example, to open the `example.txt` file in Notepad, you would use the following command:
+```
+notepad example.txt
+```vbnet
+
+To save changes to a text file, you can use the `touch` command followed by the name of the file and the name of the file you want to save it as. For example, to save the contents of the `example.txt` file as a new file called `example2.txt`, you would use the following command:
+```
+touch example2.txt
+```
+You can then edit the contents of the `example2.txt` file using a text editor, and then save your changes.
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touch example2.txt
+```
+
+```
+notepad example2.txt
+```
+
+```
+touchAs the creator of this text file, I have the right to make it available to others for use and modification under the terms of the Creative Commons Attribution-ShareAlike 4.0 International license. This license allows others to use and modify the file, as long as they credit me as the original creator and share any modified versions under the same license terms. I waive all rights to the file, including commercial use.
