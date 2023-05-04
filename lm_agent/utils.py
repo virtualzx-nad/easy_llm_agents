@@ -112,7 +112,7 @@ def summarize_text(text, description="", summary_size=600, model='gpt-3.5-turbo'
     current_summary = ''
     base_text = (
         f"Extract from text below based on this instruction `{description}`. "
-        f"Keep your response succinct and within {summary_size} tokens.  Keep names and URLs if possible when relevant.  Return verbatim text or sentence if the instruction asks for a specific section or if the content is source code.  Keep all formatting and indentation in code blocks.  Do not give any additional explation unless explicitly asked. For example: `Extract the keyword`; valid resposne `KATZ`; invalid response `The keyword is KATZ`.  \n"
+        f"Keep your response within {summary_size} tokens and do not repeat information.  Keep names, URLs and figures if possible when relevant.  Return verbatim text or sentence if the instruction asks for a specific section.  Any relevant source code should be returned verbatim, with all formatting and indentation kept unchanged.  Do not give any additional explanation unless explicitly asked. For example: `Extract the keyword`; valid resposne `KATZ`; invalid response `The keyword is KATZ`.  \n"
         "Text:\n```" + current_summary + '\n'
             )
     start = 0
@@ -122,7 +122,7 @@ def summarize_text(text, description="", summary_size=600, model='gpt-3.5-turbo'
     if callback:
         callback(lines=len(lines)-1, tokens=sum(toks), n=int(math.ceil(sum(toks)/(max_tokens-total_tokens-8))))
     for i, (line, tokens) in enumerate(zip(lines, toks)):
-        line = line.strip() + '\n'
+        line = line.rstrip() + '\n'
         if total_tokens + tokens <= max_tokens and i < len(lines) - 1:
             if line:
                 included.append(line)
@@ -227,3 +227,66 @@ def parse_python(content):
         return result
     except Exception as e:
         pass
+
+
+def google_search(query, max_results=10, url="https://www.google.com/search?q={query}", tbs=None, tbm=None):
+    """A quick an simple scraper to get the top results from a search result page"""
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+    }
+    escaped_query = urllib.parse.quote(query)
+    if tbs:
+        escaped_query += f'&tbs={tbs}'
+    if tbm:
+        escaped_query += f'&tbm={tbm}'
+    res = requests.get(url.format(query=escaped_query), headers=headers)
+
+    soup = BeautifulSoup(res.text, 'html.parser')
+    search_results = []
+    n_result = 0
+    # for erach search result, extract title, links and text summary.  Try to make sure it works for tables
+    if tbm == 'nws':
+        for result in soup.find_all('div', {'class': 'SoaBEf'}):
+            freshness = result.find('div', {'style': 'bottom:0px'})
+            title = result.find('div', {'role': 'heading'})
+            a_blocks = result.find_all('a', href=True)
+            entry = {
+                'title': f'{title.text} ({freshness.text})',
+                'links': list(set(link['href'] for link in a_blocks if link['href'].startswith('http')))
+            }
+            lines = []
+            for content in result.find_all('div', {'class': 'GI74Re nDgy9d'}):
+                for tr in content.find_all('tr'):
+                    tr.insert_after('\n')
+                lines.append(' '.join(content.strings))
+            entry['content'] = '\n'.join(lines)
+            search_results.append(entry)
+            n_result += 1
+            if n_result == max_results:
+                break
+    else:
+        for result in soup.find_all('div', {'class': 'MjjYud'}):
+            title_block = result.find('div', {'class': 'yuRUbf'})
+            title = result.find('h3')
+            if title:
+                entry = {'title': title.text}
+                lines = []
+                if title_block:
+                    a_blocks = title_block.find_all('a', href=True)
+                    entry['links'] = list(set(link['href'] for link in a_blocks if link['href'].startswith('http')))
+                    for content in result.find_all('div', {'class': 'Z26q7c UK95Uc VGXe8'}):
+                        for tr in content.find_all('tr'):
+                            tr.insert_after('\n')
+                        lines.append(' '.join(content.strings))
+                    entry['content'] = '\n'.join(lines)
+                else:
+                    for content in result.find_all('img'):
+                        if not content.get('data-src'):
+                            continue
+                        lines.append(f"![{content['alt']}]({content['data-src']})")
+                    entry['content'] = 'Images: ' + '\n'.join(lines)
+                search_results.append(entry)
+                n_result += 1
+                if n_result == max_results:
+                    break
+    return search_results

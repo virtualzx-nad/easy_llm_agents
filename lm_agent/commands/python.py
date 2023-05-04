@@ -73,12 +73,13 @@ class PythonCommand(Command,
         self.send_message(info="Executing code snippet", code=code_string, cwd=curr_dir)
         if run_spec.get('execute', True):
             try:
-                result['last_expression_value'] = exec_and_return(code_string, {}, loc)
+                result['last_expression_value'] = exec_and_return(code_string, loc, loc)
                 self.send_message(script_returns=result['last_expression_value'])
             except SyntaxError as e:  # So syntax isn't right.  No biggie.  Try all kinds of stuff to make it work
                 self.send_message(syntax_error=str(e), fix_model=self.config['fix_model'])
                 model = CompletionModel.get(self.config['fix_model'])
                 # try to fix the snippet
+                self.send_message(info=f'Attempting to fix code', model=model.name)
                 edited = model.get_completion(
                     "A syntax error is reported in the following code snippet. "
                     "Please correct the syntax error and make no other changes.  "
@@ -87,7 +88,7 @@ class PythonCommand(Command,
                     "If you absolutely have to  please put them as comments.\n```"
                     + code_string + "```\n", text_only=True).strip('```')
                 try:
-                    result['last_expression_value'] = exec_and_return(edited, {}, loc)
+                    result['last_expression_value'] = exec_and_return(edited, loc, loc)
                 except Exception as e2:   # really can't fix this sorry
                     self.send_message(info=' AI authored Python script errored out', exception=e2, traceback=tb.format_exc())
                     result['error'] = str(e2)

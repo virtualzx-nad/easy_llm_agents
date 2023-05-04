@@ -39,6 +39,7 @@ make wrong choices and will use second opinions and cold logic to supplement the
 
 You can create a command to perform a health check of your system like this:
 ```python
+import requests
 from lm_agents.commands import Command
 
 class HealthCheckCommand(
@@ -47,7 +48,6 @@ class HealthCheckCommand(
     description="Check the health status of the frog service. The following should be supplied in content:\n    -`data`: json parameters\n\n    - `status_key`: which key to extract from api"
 ):
     def generate_prompt(self):
-        import requests   # imports should be lazy
 
         resp = requests.post(f'https://mycompany.com/frog/_health?secret={self.metadata["frog_api_secret"]}', json=self.content[0]['data'])
         if not resp.ok:
