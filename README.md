@@ -40,7 +40,7 @@ make wrong choices and will use second opinions and cold logic to supplement the
 You can create a command to perform a health check of your system like this:
 ```python
 import requests
-from lm_agents.commands import Command
+from lm_agent.commands import Command
 
 class HealthCheckCommand(
     Command,
