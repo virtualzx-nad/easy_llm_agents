@@ -72,7 +72,7 @@ class OpenAIModel(CompletionModel):
         tokens = self.token_count(messages)
         actual_max = self.max_tokens - tokens - 8
         if actual_max < 0:
-            raise RuntimeError('Incoming prompt is larger than model token limit')
+            raise RuntimeError(f'Incoming prompt is larger than model token limit. Context size: {tokens}')
         if actual_max < options['max_tokens']:
             if options['max_tokens'] - actual_max > 300:
                 print(f"Shrinking max_token from {options['max_tokens']} to {actual_max}")

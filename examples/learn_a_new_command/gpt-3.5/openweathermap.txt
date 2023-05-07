@@ -1,0 +1,13 @@
+OpenWeatherMap provides a simple, fast, and free weather API that offers access to current weather data, hourly, 5- and 16-day forecasts, and historical weather data.
+
+The Historical weather data collection includes History API, History API for Timestamp, History API Full archive, History Bulk, and History Forecast Bulk. Through the API, users can get historical weather data for specific points in time for more than 40 years back. Historical weather data are available for any coordinate on the globe.
+
+OpenWeatherMap also offers Professional collections for professionals and specialists with middle-sized projects, which include Current & Forecasts collection, Historical weather data collection, Weather Maps collection, and other APIs. For Enterprise level projects, they provide an Enterprise license that includes all forecast products and current state, along with alerts, maps, and other products.
+
+OpenWeatherMap collects and processes weather data from different sources such as global and local weather models, satellites, radars, and a vast network of weather stations. They offer JSON, XML, HTML, CSV, and other formats for their APIs.
+
+The Global Weather Alerts API provides all warnings from national weather agencies and pushes weather alerts to users' endpoints as soon as they occur. The Road Risk API is also available for users to access.
+
+The Solar Irradiance API provides information about solar radiation levels. It is available through a subscription.
+
+OpenWeather is a team of IT experts and data scientists that has been practising deep weather data science. For each point on the globe, OpenWeather provides historical, current and forecasted weather data via light-speed APIs. Headquarters in London, UK.

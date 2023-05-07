@@ -274,19 +274,18 @@ def google_search(query, max_results=10, url="https://www.google.com/search?q={q
                 if title_block:
                     a_blocks = title_block.find_all('a', href=True)
                     entry['links'] = list(set(link['href'] for link in a_blocks if link['href'].startswith('http')))
-                    for content in result.find_all('div', {'class': 'Z26q7c UK95Uc VGXe8'}):
+                    for content in result.find_all('div', {'class': lambda value: value and value.startswith("Z26q7c UK95Uc")}):
+                        if content.find('h3'):
+                            continue
                         for tr in content.find_all('tr'):
                             tr.insert_after('\n')
                         lines.append(' '.join(content.strings))
                     entry['content'] = '\n'.join(lines)
                 else:
-                    for content in result.find_all('img'):
-                        if not content.get('data-src'):
-                            continue
-                        lines.append(f"![{content['alt']}]({content['data-src']})")
-                    entry['content'] = 'Images: ' + '\n'.join(lines)
+                    entry['content'] = ''
                 search_results.append(entry)
                 n_result += 1
                 if n_result == max_results:
                     break
     return search_results
+

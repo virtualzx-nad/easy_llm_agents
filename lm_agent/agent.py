@@ -196,6 +196,8 @@ class Agent(object):
             cmd = (entry.get('command') or 'answer').replace('\_', '_')
             summary = entry.get('summary', f'Invoking command {cmd}')
             content = entry.get('content', [])
+            if not isinstance(content, list):
+                content = [content]
             notes = entry.get('notes', [])
             if cmd not in Command._registry:
                 unknown.append(cmd)
@@ -211,7 +213,6 @@ class Agent(object):
                     permission = self.overseer(cmd, summary, content)
                     if permission is not None and permission != 'GRANTED!':
                         raise CommandRejected(f'Command {cmd} rejected: ' + str(permission))
-                    print(f'Creating {CommandClass.command} with config {class_config}')
                     tasks.append(
                         CommandClass(
                             content=content,

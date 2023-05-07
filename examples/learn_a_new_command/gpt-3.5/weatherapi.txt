@@ -1,0 +1,35 @@
+WeatherAPI.com provides a free weather API and Geolocation API (JSON and XML) for hourly, daily and 15 min interval weather, historical data. The API provides access to real-time weather, 14-day weather forecast, historical weather, marine weather and tide data, future weather (up to 300 days ahead), daily and hourly intervals, 15 min interval (Enterprise only), astronomy, time zone, sports, location data, search or autocomplete API, weather alerts, air quality data and bulk request.
+
+Developers need to sign up and find their API key under their account to use the API. The API access to the data is protected by an API key. The API can be accessed by making HTTP or HTTPS request to the base URL: http://api.weatherapi.com/v1.
+
+The following API methods are available:
+- /current.json or /current.xml for current weather
+- /forecast.json or /forecast.xml for forecast
+- /search.json or /search.xml for search or autocomplete
+- /history.json or /history.xml for history
+- /marine.json or /marine.xml for marine
+- /future.json or /future.xml for future
+- /timezone.json or /timezone.xml for time zone
+- /sports.json or /sports.xml for sports
+- /astronomy.json or /astronomy.xml for astronomy
+
+For Forecast and History API method, the following parameters are available:
+- bulk: Number of days of forecast required. Required only with forecast API method. days parameter value ranges between 1 and 14. e.g: days=5. If no days parameter is provided then only today's weather is returned.
+- dt (Required for History and Future API): Restrict date output for Forecast and History API method. For history API 'dt' should be on or after 1st Jan, 2010 in yyyy-MM-dd format (i.e. dt=2010-01-01). For forecast API 'dt' should be between today and next 14 day in yyyy-MM-dd format (i.e. dt=2010-01-01). For future API 'dt' should be between 14 days and 300 days from today in the future in yyyy-MM-dd format (i.e. dt=2023-01-01).
+- unixdt (Optional): Unix Timestamp used by Forecast and History API method. unixdt has same restriction as 'dt' parameter. Please either pass 'dt' or 'unixdt' and not both in same request. e.g.: unixdt=1490227200
+- end_dt (Optional, Available for History API): Restrict date output for History API method. For history API 'end_dt' should be on or after 1st Jan, 2010 in yyyy-MM-dd format (i.e. dt=2010-01-01). 'end_dt' should be greater than 'dt' parameter and difference should not be more than 30 days between the two dates. Only works for API on Pro plan and above.
+- unixend_dt (Optional): Unix Timestamp used by History API method. unixend_dt has same restriction as 'end_dt' parameter. Please either pass 'end_dt' or 'unixend_dt' and not both in same request. e.g.: unixend_dt=1490227200
+- hour (Optional): Restricting forecast or history output to a specific hour in a given day. Must be in 24 hour. For example 5 pm should be hour=17, 6 am as hour=6
+- alerts (Optional, New): Disable alerts in forecast API output. alerts=yes or alerts=no
+- aqi (Optional, New): Enable/Disable Air Quality data in forecast API output. aqi=yes or aqi=no
+- tides (Optional, New): Enable/Disable Tide data in Marine API output. tides=yes or tides=no
+- tp (Optional, New): Get 15 min interval data for Forecast and History API. Available for Enterprise clients only. tp=15
+- lang (Optional): Returns 'condition:text' field in API in the desired language. Please pass 'lang code' from below table. e.g.: lang=fr. Language codes available are Arabic, Bengali, Bulgarian, Chinese Simplified, Chinese Traditional, Czech, Danish, Dutch, Finnish, French, German, Greek, Hindi, Hungarian, Italian, Japanese, Javanese, Korean, Mandarin, Marathi, Polish, Portuguese, Punjabi, Romanian, Russian, Serbian, Sinhalese, Slovak, Spanish, Swedish, Tamil, Telugu, Turkish, Ukrainian, Urdu, Vietnamese, Wu (Shanghainese), Xiang and Yue (Cantonese).
+
+Location object is returned with each API response. It returns information about the location including geo points, name, region, country and time zone information as well. When using Search or Autocomplete API following fields are NOT returned: tz_id, localtime_epoch and localtime.
+
+Forecast API returns alerts and warnings issued by government agencies (USA, UK, Europe and Rest of the World) as an array if available for the location provided through the Forecast API. By default alerts are not returned. To get alerts back in the response from Forecast API, pass the parameter alerts=yes.
+
+Air Quality data is returned in the Forecast API and Realtime API response. Depending upon your subscription plan we provide current and 3 day air quality data for the given location in json and xml. By default air quality data is not returned. To get air quality data back in the response from Forecast API and Realtime API, pass the parameter aqi=yes.
+
+Carbon Monoxide (μg/m3), Ozone (μg/m3), Nitrogen dioxide (μg/m3), Sulphur dioxide (μg/m3), PM2.5 (μg/m3), PM10 (μg/m

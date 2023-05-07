@@ -129,9 +129,35 @@ class WriterCommand(
                 prompt_tokens = self.model.token_count(prompt)
                 tail_tokens = self.model.token_count(tail)
                 max_tokens = self.model.max_tokens - context_tokens - prompt_tokens - tail_tokens - 16
+                if max_tokens < 0:
+                    compressed_context = self.summarization_model.get_completion(
+                        f'Please rewrite the following context information to be more concise, but retain as much information as possible: ```{context_prompt}```',
+                        temperature=0.2,
+                        max_tokens=5000,
+                        text_only=True,
+                    )
+                    compressed_tokens = self.model.token_count(compressed_context)
+                    max_tokens = self.model.max_tokens - compressed_tokens - prompt_tokens - tail_tokens - 16
+                    self.send_message(
+                        info='writing with compressed context',
+                        context_tokens=context_tokens,
+                        compressed_tokens=compressed_tokens,
+                        prompt_tokens=prompt_tokens,
+                        tail_tokens=tail_tokens,
+                        max_tokens=max_tokens
+                    )
+                else:
+                    compressed_context = context_prompt
+                    self.send_message(
+                        info='writing with raw context',
+                        context_tokens=context_tokens,
+                        prompt_tokens=prompt_tokens,
+                        tail_tokens=tail_tokens,
+                        max_tokens=max_tokens
+                    )
                 top_choice = self.model.get_completion(
                     [{'role': 'user', 'content': prompt}, {'role': 'assistant', 'content': tail}],
-                    system_prompt=context_prompt,
+                    system_prompt=compressed_context,
                     temperature=self.config.get('temperature', 0.7),
                     max_tokens=max_tokens,
                     text_only=False,
@@ -148,8 +174,8 @@ class WriterCommand(
                     break
                 tail = get_tail(text)
                 summary_prompt = (
-                    'Please summarize the following unfinished text with sufficient details so that '
-                    'a different person can use it to finish the text. text: ' + current_summary + '\n' + text
+                    'Please succinctly summarize the following text with sufficient details so that '
+                    'it can be use to continue the work. text: ' + current_summary + '\n' + text
                 )
                 max_tokens = self.summarization_model.max_tokens - self.summarization_model.token_count(summary_prompt)
                 current_summary = self.summarization_model.get_completion(
