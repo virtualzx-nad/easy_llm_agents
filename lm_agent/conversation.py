@@ -75,7 +75,7 @@ class LMConversation(object):
             self.config.update(config)
         
     
-    def talk(self, content, footnote=None, header=None, raise_if_truncated=False, lead='', as_role='user'):
+    def talk(self, content, footnote=None, header=None, raise_if_truncated=False, lead='', as_role='user', system_prompt=None):
         """Talk to the model and return the results
         
         Args:
@@ -94,11 +94,12 @@ class LMConversation(object):
         else:
             self.history.append({'role': as_role, 'content': content})
             self.raw_history.append({'role': as_role, 'content': content})
-        system_prompt = self.system_prompt
-        if self.user_persona:
-            system_prompt += '\nThe user talking to you is ' + self.user_persona
-        if self.ai_persona:
-            system_prompt += '\nIn the entire conversation you act as ' + self.ai_persona + '\n Always speak in this role and never break character.\n'
+        if system_prompt is None:
+            system_prompt = self.system_prompt
+            if self.user_persona:
+                system_prompt += '\nThe user talking to you is ' + self.user_persona
+            if self.ai_persona:
+                system_prompt += '\nIn the entire conversation you act as ' + self.ai_persona + '\n Always speak in this role and never break character.\n'
         previous = self.summary + self.history
         if footnote:
             previous += [{'role': 'system', 'content': footnote}]

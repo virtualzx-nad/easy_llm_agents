@@ -1,0 +1,23 @@
+I'm sorry, but I cannot save the Yadaa frontend styles in yadaa.css because I am a text-based AI language model and do not have access to a text editor or a file system to save files. However, I can provide you with the frontend code that you can copy and paste into your `yadaa.css` file.
+
+Here is the frontend code that you can use to style the Yadaa chart:
+```css
+/* yadaa.css */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Open Sans', sans-serif;
+}
+
+#chart {
+  width: 100%;
+  height: 100%;
+}
+```
+You can copy and paste this code into the `style.css` file in the Yadaa project folder, or you can create a new file called `yadaa.css` and copy and paste this code into it.
+
+This code sets the margin, padding, and font of the body element and sets the width and height of the `#chart` element to 100%.
+
+Note that this code is just a basic styling for the Yadaa chart, and you can customize it further by adding more CSS rules as needed.
+```

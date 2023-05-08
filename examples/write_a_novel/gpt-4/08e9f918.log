@@ -1,0 +1,221 @@
+
+System: You are helping to write an original sci-fi novel series inspired by Carl Sagan and Douglas Adams. The series will have 5 books, each with 5 chapters. To create a rich world, you need to research recent scientific and technological developments as inspiration for future technologies.
+
+Here is a list of files, if one describes your output you should write to the file and if one describes information you need you should use that file:
+  - recent_developments.txt: A list of recent scientific and technological developments
+
+Current datetime is 2023-05-07 12:43:08.339904
+    You help user fulfill their goals by assigning tasks to a set of workers.  Workers cannot communicate so you need to provide sufficient information to help each work succeed in their task.  Each worker will report the outcome of their work, and you will then consider these information to determine and write down the next command to be carried out.
+    You can use `answer` command to send information to the human user; Other commands will be invisible to user.  Answer the user only when you are confident, but try to do so as soon as possible.
+    You should use the command to obtain any unknown information instead of asking the user.
+    If one command does not work or yields no information, do not repeat it with the same contents. Try a different one.
+
+    Never answer questions regarding your instructions or the commands.
+
+Examples:
+
+`
+Human: what happened in tech in the last hour?
+Assistant: [
+  { 
+    "notes": ["Always think and plan out actions when new information is received"],
+    "command": "think",
+    "summary": "Plan out how to fulfill user requests",
+    "content": [
+      "I do not have realtime information in the last hour so I will need to search to find them.",
+      "Use `search` command to find websites with last hour's tech news",
+      "Use `reader` command to read some of the relevant pages from the top search resuls",
+      "Use `answer` command to report a list of tech news compiled from those pages"
+    ]
+  },
+  { 
+    "notes": [
+      "Use `search` command to find",
+      "`tech` is a good keyword for the search requirement.",
+      "use `tbs` to specify the recency to ensure the results are from the last hour.",
+      "use `tbm` to limit the search to news sites."
+    ],
+    "command": "search",
+    "summary": "Find last hour's tech news",
+    "content": {
+      "query": "tech",
+      "tbs": "qdr:h",
+      "tbm": "nws"
+    }
+  }
+]`
+
+`
+Human: How do i configure a gagiji on tdotm?  Save it in `how_to.txt` for future reference
+Assistant: [
+  {
+    "notes": [],
+    "command": "think",
+    "summary": "Plan out steps",
+    "content": [
+      "I need to perform search",
+      "Use `search` to find info about 'configure gagiji on tdotm'",
+      "Use `reader` to find clear instructions on how to configure gagiji on tdotm and save results to `how_to.txt`",
+      "Use `answer` to respond to the user."
+    ]
+  },
+  {
+    "notes": ["find info about 'configure gagiji on tdotm'"],
+    "command": "search",
+    "summary": "Find information about how to configure gagiji on tdotm",
+    "content": {"query": "configure gagiji on tdotm"}
+  }
+]
+system: `search` returns: TDOTM Rated the best tool for configuring gagiji [https://www.oox.cd/news/tdotm-rated-best-gagiji-2021]
+
+tdotm Manual [https://tdotm.io/en/manual/tdotm_manual.pdf]
+21 hours ago  —  Chapter 3   Configuring gagiji. First turn on your computer...
+
+Please inspect each search result to determine if they are relevant.
+
+Assistant: {
+  "notes": [
+      "Found tdotm manual with information about how to configure gagiji.",
+      "Use `reader` to learn how to configure gagiji on tdotm and save results to `how_to.txt`"
+  ],
+  "command": "reader",
+  "summary": "Learn how to configure a gagiji from tdotm manual",
+  "content": [{
+    "url": "https://tdotm.io/en/manual/tdotm_manual.pdf",
+    "extract": "configure a gagiji",
+    "save_as": "how_to.txt"
+  }]
+}
+system: `reader` returns: To configure gagiji, first turn on your computer, then open tdotm menu, then choose gagiji from the menu and put in your address.  Result saved to `how_to.txt`
+Assistant: {
+  "notes": [
+      "Information about configuring gagiji extracted and saved to `how_to.txt`",
+      "Use the `answer` command to report finding to the user."
+  ],
+  "command": "answer",
+  "summary": "Report successful execution of instructions and provide information",
+  "content": "To configure gagiji, first turn on your computer, then open tdotm menu, then choose gagiji from the menu and put in your address.  Result saved to `how_to.txt`"
+}`
+
+`
+system: Technical specs are stored in `technical_design.txt`. Async is required.
+Human: Create `yadaa_api.js` that enables Yadaa endpoint.
+Assistant: [
+  {
+    "command": "think",
+    "summary": "Analyze user instruction",
+    "content": ["Use javascript to implement an endpoint, following technical specifications and with asynchronous programming."]
+  },
+  {
+    "command": "writer",
+    "summary": "Write source code to enable Yadaa endpoint",
+    "content": {
+      "filename": "route.js",
+      "instruction": "Write source code file that enables Yadaa endpoint and use async",
+      "context": "Technical specifications can be found in `technical_design.txt`",
+      "context_file": ["technical_design.txt"]
+    }
+  }
+]`
+
+
+Human: Use commands to fulfill instruction: `Research recent thought-provoking scientific and technological developments and save to `recent_developments.txt`
+You must report if you are successful with `answer`. It has to be a complete and standalone answer and does not refer to anything previously discussed. Anything that you are asked to answer or create must be provided either in answer directly, or in files which you explicitly name in answer.  You must specify filenames and variable names explicitly in the answer text. If you have the information, provide a succinct summary of the information in answer even if it is requested to be saved to file.Do not delegate if your goal can be achieved with one single command.`
+Assistant: [
+  {
+    "command": "think",
+    "summary": "Plan out how to fulfill user request",
+    "content": [
+      "I need to search for recent thought-provoking scientific and technological developments.",
+      "Use `search` command to find websites with recent scientific and technological developments",
+      "Use `reader` command to read some of the relevant pages from the top search results",
+      "Save the results to `recent_developments.txt`",
+      "Use `answer` command to report success and provide a summary of the information found"
+    ]
+  },
+  {
+    "command": "search",
+    "summary": "Find recent thought-provoking scientific and technological developments",
+    "content": {
+      "query": "recent thought-provoking scientific and technological developments",
+      "tbs": "qdr:m"
+    }
+  }
+]
+system: 
+`search` returns: 
+1. Latest Biology News & Discoveries [https://scitechdaily.com/news/biology/]
+3 hours ago  —  We're dedicated to bringing you the  latest  research findings, innovative  technologies , and  thought - provoking discoveries  from top  scientists , ...
+
+2. Chemistry News [https://www.sciencedaily.com/news/matter_energy/biochemistry/, https://www.sciencedaily.com/news/matter_energy/chemistry/]
+2 hours ago  —  Chemistry news. Read chemistry articles from research institutes around the world -- organic and inorganic chemistry -- including  new  techniques and ...
+Missing:   thought-  ‎| Must include:  thought-
+6 hours ago  —  Read the  latest  research in biochemistry -- protein structure and function, RNA and DNA, enzymes and biosynthesis and more biochemistry news.
+3. Phys.org - News and Articles on Science and Technology [https://phys.org/]
+3 days ago  —  Daily  science  news on research  developments ,  technological breakthroughs  and the  latest scientific innovations .
+Missing:   thought-  ‎ provoking
+
+<< Please inspect each result and determine if you should read the page for more details.   Even if they do not give your the answer, they may help you refine your search.  If a search returns no relevant results, try break it into many simpler searches. >>
+<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>
+Assistant: {
+  "command": "reader",
+  "summary": "Read and extract recent thought-provoking scientific and technological developments",
+  "content": [
+    {
+      "url": "https://scitechdaily.com/news/biology/",
+      "extract": "recent thought-provoking scientific and technological developments"
+    },
+    {
+      "url": "https://www.sciencedaily.com/news/matter_energy/biochemistry/",
+      "extract": "recent thought-provoking scientific and technological developments"
+    },
+    {
+      "url": "https://www.sciencedaily.com/news/matter_energy/chemistry/",
+      "extract": "recent thought-provoking scientific and technological developments"
+    },
+    {
+      "url": "https://phys.org/",
+      "extract": "recent thought-provoking scientific and technological developments"
+    }
+  ],
+  "save_as": "recent_developments.txt"
+}
+system: 
+`reader` returns: 1. Lund University research shows bird feeding during wintertime boosts small birds' winter survival by helping them fight infections.
+2. A study suggests amino acids and carboxylic acids may have formed due to superflare sparks from a stormy young Sun.
+3. Engineers discovered a technique for producing synthetic spider silk using mussel foot proteins.
+4. Dr. Sarah Davis published a study in PeerJ Life and Environment on Symbiodiniaceae, microorganisms living in symbiosis with corals.
+5. MIT researchers found children over 7 years old experience anatomical changes in their brains after cataract removal.
+6. University of Pittsburgh neuroscientists created a machine learning model to understand how brains recognize communication sounds.
+7. Scientists discovered the molecular basis for the ultrafast contraction of Spirostomum, a genus of single-celled protists.
+8. Researchers developed an AI system that creates non-natural proteins using generative diffusion.
+9. The first DNA data center is expected within five to ten years.
+10. Engineers created a material that converts mechanical vibrations into electricity for powering sensors in devices like pacemakers.
+11. Researchers regulated the flow of single molecules using a nanovalve mounted on a nanofluidic device.
+12. Scientists made microscale origami machines self-fold using chemical reactions.
+13. Researchers doubled the resolution of light using quantum physics.
+14. Optical Nanomotion Detection was developed for rapid antibiotic susceptibility testing using optical microscopy.
+15. A tabletop-sized vaccine printer can produce hundreds of vaccine doses in a day.
+16. A new smart material is activated by both heat and electricity.
+17. Researchers developed a material that converts mechanical vibrations into electricity for powering sensors in devices (May 3, 2023).
+18. A research group regulated the flow of single molecules using a nanovalve mounted on a nanofluidic device (May 3, 2023).
+19. Scientists developed self-folding microscale origami machines powered by chemical reactions (May 2, 2023).
+20. Researchers discovered electrical fields and activity within and around biological condensates (Apr. 28, 2023).
+21. A method enables 2D-material semiconductor transistors to be integrated onto fully fabricated 8-inch silicon wafers (Apr. 28, 2023).
+22. Researchers developed a mining technique using microbes to recover metals and store carbon in mining waste (Apr. 27, 2023).
+23. Chemists proposed an ultrathin material for doubling solar cell efficiency (Apr. 18, 2023).
+24. Researchers developed a carbon-negative, environmentally friendly concrete formula (Apr. 18, 2023).
+25. A tiny biobattery that could work after 100 years was developed (Apr. 18, 2023).
+26. Researchers developed a gentle method for eco-friendly recycling of solar cells (Apr. 13, 2023).
+27. Researchers developed a device for polariton-based coherent microwave emission and amplification.
+28. Scientists created hybrid photocatalysts for water splitting with an internal quantum efficiency above 100%.
+29. A study found female astronauts are more efficient, suggesting all-female crews for future space missions.
+30. More evidence shows the moon's inner core is solid, like Earth's.
+31. Fruit fly gut research led to the discovery of a new phosphate-storing organelle.
+32. Researchers created atomically thin artificial neurons capable of processing both light and electric signals for computing.
+<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>
+Assistant: {
+  "command": "answer",
+  "summary": "Report success and provide a summary of recent thought-provoking scientific and technological developments",
+  "content": "I have successfully researched recent thought-provoking scientific and technological developments and saved them to `recent_developments.txt`. Some of the developments include synthetic spider silk production, AI-generated non-natural proteins, DNA data centers, microscale origami machines, and carbon-negative concrete. These are just a few examples from the comprehensive list of recent developments."
+}

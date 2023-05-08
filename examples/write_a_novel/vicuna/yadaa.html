@@ -1,0 +1,79 @@
+```css
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Yadaa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.15/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/d3/5.7.0/d3.min.css">
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Open Sans', sans-serif;
+      }
+
+      #chart {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chart"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.7.0/d3.min.js"></script>
+    <script>
+      // Define the data
+      const data = [
+        {label: "Apples", value: 12},
+        {label: "Bananas", value: 19},
+        {label: "Oranges", value: 15},
+        {label: "Grapes", value: 11},
+        {label: "Pears", value: 8}
+      ];
+
+      // Set the dimensions of the chart
+      const svg = d3.select('#chart')
+                    .append('svg')
+                    .attr('width', 500)
+                    .attr('height', 300);
+
+      // Create the SVG element
+      const chart = svg.append('g')
+                    .attr('transform', 'translate(0,300)');
+
+      // Create the scales
+      const xScale = d3.scaleBand()
+                        .range([50, 450])
+                        .domain(data.map(d => d.label))
+                        .padding(0.2);
+
+      const yScale = d3.scaleLinear()
+                        .range([250, 50])
+                        .domain([0, d3.max(data, d => d.value)]);
+
+      // Add the x and y axes
+      chart.append('g')
+            .attr('transform', 'translate(0,200)')
+            .call(d3.axisBottom(xScale));
+
+      chart.append('g')
+            .call(d3.axisLeft(yScale));
+
+      // Add the bars
+      chart.selectAll('.bar')
+            .data(data)
+            .enter()
+            .append('rect')
+            .attr('class', 'bar')
+            .attr('x', d => xScale(d.label))
+            .attr('y', d => yScale(d.value))
+            .attr('width', xScale.bandwidth())
+            .attr('height', d => 250 - yScale(d.value))
+            .attr('fill', 'steelblue');
+    </script>
+  </body>
+</html>
+```
+This code will generate the same bar chart as before, but this time it will be saved in `yadaa.html`. The code is contained within the `<body>` tags, as before.

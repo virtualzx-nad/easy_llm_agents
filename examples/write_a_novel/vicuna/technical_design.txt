@@ -1,0 +1,15 @@
+API Specification for Yadaa Endpoint
+====================================
+
+Introduction
+------------
+
+The Yadaa endpoint is a RESTful API that allows developers to integrate Yadaa's translation services into their applications. This API provides programmatic access to Yadaa's translation capabilities, allowing developers to automate the translation process and integrate it into their workflows.
+
+API Endpoint
+-------------
+
+The Yadaa endpoint is accessible at the /yadaa endpoint.
+
+Requests and Responses
+----------------------

@@ -109,6 +109,7 @@ class Agent(object):
                 system_prompt += '\n' + CommandClass.additional_context
             if CommandClass.example:
                 examples += f'\n`' + format_messages(CommandClass.example, config=self.model.config) + '`\n'
+        self.compact_prompt = system_prompt
         if examples:
             system_prompt += '\nExamples:\n' + examples
         self.conversation = LMConversation(
@@ -168,15 +169,35 @@ class Agent(object):
                 raise_if_truncated=True,
                 as_role='system',
             )
-        except AnswerTruncated:
+        except RuntimeError:  # the prompt is too long.  drop examples for now
             llm_response = self.conversation.talk(
                 prompt,
                 header=self.generate_command_list(),
-                footnote=context+
-                    '\nYou can only use ONE command to avoid exceeding token limit. '
-                    'Keep your command as succinct as possible.\n',
+                system_prompt=self.compact_prompt,
+                footnote=context,
+                raise_if_truncated=True,
                 as_role='system',
             )
+        except AnswerTruncated:
+            try:
+                llm_response = self.conversation.talk(
+                    prompt,
+                    header=self.generate_command_list(),
+                    footnote=context+
+                        '\nYou can only use ONE command to avoid exceeding token limit. '
+                        'Keep your command as succinct as possible.\n',
+                    as_role='system',
+                )
+            except RuntimeError:
+                llm_response = self.conversation.talk(
+                    prompt,
+                    header=self.generate_command_list(),
+                    system_prompt=self.compact_prompt,
+                    footnote=context+
+                        '\nYou can only use ONE command to avoid exceeding token limit. '
+                        'Keep your command as succinct as possible.\n',
+                    as_role='system',
+                )
         self._last_response = llm_response
         return llm_response
 
@@ -327,7 +348,7 @@ class Agent(object):
                     entry['content'][key] = value
         return result
 
-    def instruct(self, human_input, context='', max_ai_cycles=20, max_qa_rejections=2):
+    def instruct(self, human_input, context='', max_ai_cycles=30, max_qa_rejections=2):
         """Send instruction to the agent.
         
         The agent will report back when it has either finished the task or deemed it too hard.
