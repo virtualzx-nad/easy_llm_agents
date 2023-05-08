@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 from .command import Command
 from ..models import CompletionModel
-
+from ..utils import google_search
 
 class SearchCommand(
     Command,
@@ -77,7 +77,7 @@ class SearchCommand(
             tbm = search.get('tbm')
             size = search.get('size', default_size)
             self.send_message(query=query, size=size, tbs=tbs, tbm=tbm)
-            results.extend(self.google_search(query, tbs=tbs, tbm=tbm, max_results=size))
+            results.extend(google_search(query, tbs=tbs, tbm=tbm, max_results=size))
         output = []
         titles = []
         for i, entry in enumerate(results):
@@ -112,38 +112,3 @@ Here are some of my notes on my thinking:
 Please return ONE query string."""
         model = CompletionModel.get(self.config.get('model') or self.config['default_model'])
         return model.get_completion(instruction, text_only=True)
-
-    @staticmethod
-    def google_search(query, max_results=10, url="https://www.google.com/search?q={query}", tbs=None, tbm=None):
-        """A quick an simple scraper to get the top results from a search result page"""
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
-        }
-        escaped_query = urllib.parse.quote(query)
-        if tbs:
-            escaped_query += f'&tbs={tbs}'
-        if tbm:
-            escaped_query += f'&tbm:{tbm}'
-        res = requests.get(url.format(query=escaped_query), headers=headers)
-
-        soup = BeautifulSoup(res.text, 'html.parser')
-        search_results = []
-        n_result = 0
-        # for erach search result, extract title, links and text summary.  Try to make sure it works for tables
-        for result in soup.find_all('div', {'class': 'MjjYud'}):
-            title = result.find('h3')
-            if title:
-                entry = {'title': title.text}
-                a_blocks = result.find_all('a', href=True)
-                entry['links'] = list(set(link['href'] for link in a_blocks if link['href'].startswith('http')))
-                lines = []
-                for content in result.find_all('div', {'class': 'Z26q7c UK95Uc'}):
-                    for tr in content.find_all('tr'):
-                        tr.insert_after('\n')
-                    lines.append(' '.join(content.strings))
-                entry['content'] = '\n'.join(lines)
-                search_results.append(entry)
-                n_result += 1
-                if n_result == max_results:
-                    break
-        return search_results
