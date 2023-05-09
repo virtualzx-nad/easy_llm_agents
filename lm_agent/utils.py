@@ -6,6 +6,7 @@ import sys
 import ast
 import json
 import math
+import urllib
 import mimetypes
 
 import requests
@@ -265,6 +266,26 @@ def google_search(query, max_results=10, url="https://www.google.com/search?q={q
             if n_result == max_results:
                 break
     else:
+        info = soup.find('div', {'class': 'yxjZuf'})
+        if info:
+            entry = {'title': 'General information', 'links': []}
+            lines = []
+            for content in info.find_all('span'):
+                if content.parent.name == 'span':
+                    continue
+                line = ' '.join(content.strings)
+                cc = content.get('class', '')
+                if isinstance(cc, list):
+                    cc = ''.join(cc)
+                if cc == 'Y2Bcn':
+                    continue
+                if cc != 'w8qArf':
+                    line += '\n'
+                if line.strip():
+                    lines.append(line)
+            entry['content'] = ''.join(lines)
+            search_results.append(entry)
+        # search_results.append()
         for result in soup.find_all('div', {'class': 'MjjYud'}):
             title_block = result.find('div', {'class': 'yuRUbf'})
             title = result.find('h3')
@@ -280,6 +301,12 @@ def google_search(query, max_results=10, url="https://www.google.com/search?q={q
                         for tr in content.find_all('tr'):
                             tr.insert_after('\n')
                         lines.append(' '.join(content.strings))
+                    info_block = result.find('div', {'class': 'V3FYCf'}) or []
+                    for item in info_block:
+                        ic = item.get('class', '')
+                        if ic == 'g' or isinstance(ic, list) and 'g' in ic:
+                            continue
+                        lines.append(' '.join(item.strings))
                     entry['content'] = '\n'.join(lines)
                 else:
                     entry['content'] = ''
