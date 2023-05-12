@@ -236,6 +236,8 @@ def google_search(query, max_results=10, url="https://www.google.com/search?q={q
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
     }
     escaped_query = urllib.parse.quote(query)
+    if tbm not in ('nws', 'isch', 'vid', 'bks', 'shop'):
+        tbm = None
     if tbs:
         escaped_query += f'&tbs={tbs}'
     if tbm:

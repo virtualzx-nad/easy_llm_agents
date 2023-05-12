@@ -11,7 +11,7 @@ from ..utils import google_search
 class SearchCommand(
     Command,
     command='search',
-    description='Search Goole to get top results and URLs to expand your knowledge. You must provide the exact search phrase and nothing else in `query` , and optionally tbs and tbm only when warranted. ',
+    description='Search Goole to get top results and URLs to expand your knowledge. You must provide the exact search phrase and nothing else in `query` , and optionally tbs and tbm only when warranted. Only specify tbm and tbs when needed.',
     alias=['google'],
     example=[
         {'role': 'user', 'content': 'what happened in tech in the last hour?'},
