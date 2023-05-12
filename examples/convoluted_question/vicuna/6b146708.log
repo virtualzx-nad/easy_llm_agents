@@ -1,9 +1,15 @@
-###System: This is one step in a series of tasks. Steps after this one (that you will not do):
-    Find the spouse's name
-    Find the workplace location and its zip code
+###System: The most recent Turing Award winner is Don Knuth, whose spouse works at Stanford University.
+
+Here is a list of files, if one describes your output you should write to the file and if one describes information you need you should use that file:
+  - most_recent_turing_winner.txt: Don Knuth's spouse works at Stanford University
+This is one step in a series of tasks. Steps after this one (that you will not do):
+    Create module `b` based on technical design in `design.doc` and and save it to file `b.py`
+    Create module `c` with functions `c1`, `c2` and `c3` based on technical design in `design.doc` and and save it to file `c.py`
+    Find the most recent Turing Award winner's spouse's workplace
+    Use the zip code of that workplace
 Do not perform tasks that are assigned to other workers
 
-Current datetime is 2023-05-01 07:00:16.546011
+Current datetime is 2023-05-11 17:41:08.986841
     You help user fulfill their goals by assigning tasks to a set of workers.  Workers cannot communicate so you need to provide sufficient information to help each work succeed in their task.  Each worker will report the outcome of their work, and you will then consider these information to determine and write down the next command to be carried out.
     You can use `answer` command to send information to the human user; Other commands will be invisible to user.  Answer the user only when you are confident, but try to do so as soon as possible.
     You should use the command to obtain any unknown information instead of asking the user.
@@ -106,69 +112,10 @@ Please inspect each search result to determine if they are relevant.
   }
 ]`
 
-###Human: Use commands to fulfill instruction: `Find the most recent Turing award winner's name
-You must report if you are successful with `answer`. It has to be a complete and standalone answer and does not refer to anything previously discussed. Anything that you are asked to answer or create must be provided either in answer directly, or in files which you explicitly name in answer.  You must specify filenames and variable names explicitly in the answer text. If you have the information, provide a succinct summary of the information in answer even if it is requested to be saved to file.Do not delegate if your goal can be achieved with one single command.`###Assistant: ```
-{
-    "command": "search",
-    "summary": "Find the most recent Turing award winner's name",
-    "content": {
-        "query": "Turing award winner 2022",
-        "extract": "The most recent Turing award winner's name"
-    }
-}
-```###system: 
-`search` returns: 
-1. Awards Home [https://awards.acm.org/]
-
-2. 2022 Turing Award [https://awards.acm.org/about/2022-turing]
-ACM has named  Bob Metcalfe  as recipient of the 2022 ACM A.M. Turing Award for the invention, standardization, and commercialization of Ethernet.
-
-3. Description [https://scholar.google.com/citations?user=EKGzIBYAAAAJ&view_op=view_citation&citation_for_view=EKGzIBYAAAAJ:u5HHmVD_uO8C, https://scholar.google.com/citations?user=EKGzIBYAAAAJ, https://en.wikipedia.org/wiki/Robert_Metcalfe, https://www.protocol.com/enterprise/turing-jack-dongarra-supercomputers-cloud, https://scholar.google.com/citations?user=EKGzIBYAAAAJ&view_op=view_citation&citation_for_view=EKGzIBYAAAAJ:fQNAKQ3IYiAC, https://posts.google.com/claim/?mid=/m/01qdr8]
-Now, as a credit to that work,  Dongarra  has won this year's prestigious Turing Award, often referred to as the “Nobel Prize of Computing,” from the Association ...
-
-<< Please inspect each result and determine if you should read the page for more details.   Even if they do not give your the answer, they may help you refine your search.  If a search returns no relevant results, try break it into many simpler searches. >>
-<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>###Assistant: ```
-{
-    "command": "think",
-    "content": {
-        "Turing award winner 2022" : "Bob Metcalfe",
-        "most recent Turing award winner" : "Bob Metcalfe",
-        "ACM A.M. Turing Award" : "Bob Metcalfe",
-        "Ethernet" : "Bob Metcalfe"
-    }
-}
-```###system: << Proceed to format the next command that is needed to fulfill user instruction or question in Python dict. Do not repeat the last command. >>###Assistant: ```
-{
-    "command": "writer",
-    "content": {
-        "filename" : "most_recent_turing_winner.py",
-        "instruction" : "Write a Python script that prints the most recent Turing award winner's name",
-        "context" : "The most recent Turing award winner is Bob Metcalfe, who was awarded for his work on Ethernet.",
-        "context_file" : []
-    }
-}
-```###system: 
-`writer` returns: File most_recent_turing_winner.py was written
-<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>###Assistant: ```
-{
-    "command": "reader",
-    "content": {
-        "filename" : "most_recent_turing_winner.py",
-        "instruction" : "Read the most recent Turing award winner's name from the file most_recent_turing_winner.py",
-        "context" : "The most recent Turing award winner is Bob Metcalfe, who was awarded for his work on Ethernet.",
-        "context_file" : []
-    }
-}
-```###system: 
-`reader` returns: item: most_recent_turing_winner.py
- Info: Key information: The Python script will print the most recent Turing award winner's name, which is "Bob Metcalfe".
-
-<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>###Assistant: ```
-{
-    "command": "answer",
-    "content": {
-        "item" : "most_recent_turing_winner.py",
-        "output" : "The most recent Turing award winner's name is Bob Metcalfe."
-    }
-}
-```###
+###Human: Use commands to fulfill instruction: `Create module `a` with functions `a1` and `a2` based on technical design in `design.doc` and save it to file `a.py`
+You must report if you are successful with `answer`. It has to be a complete and standalone answer and does not refer to anything previously discussed. Anything that you are asked to answer or create must be provided either in answer directly, or in files which you explicitly name in answer.  You must specify filenames and variable names explicitly in the answer text. If you have the information, provide a succinct summary of the information in answer even if it is requested to be saved to file.Do not delegate if your goal can be achieved with one single command.`###Assistant: ###system: << Command create_module does not exist.  Please choose a command from ['answer', 'search', 'google', 'reader', 'read', 'summarize', 'think', 'python', 'writer'] >>
+<< Command define_functions does not exist.  Please choose a command from ['answer', 'search', 'google', 'reader', 'read', 'summarize', 'think', 'python', 'writer'] >>
+<< Command save_to_file does not exist.  Please choose a command from ['answer', 'search', 'google', 'reader', 'read', 'summarize', 'think', 'python', 'writer'] >>
+<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>###Assistant: ###system: << Command create_module does not exist.  Please choose a command from ['answer', 'search', 'google', 'reader', 'read', 'summarize', 'think', 'python', 'writer'] >>
+<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>###Assistant: system: << Command create\_module does not exist.  Please choose a command from ['answer', 'search', 'google', 'reader', 'read', 'summarize', 'think', 'python', 'writer'] >>
+<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>###
