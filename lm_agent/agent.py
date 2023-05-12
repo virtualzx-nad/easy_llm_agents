@@ -214,7 +214,10 @@ class Agent(object):
         unknown = []
         disabled = []
         for entry in self.parse_content(text):
-            cmd = (entry.get('command') or 'answer').replace('\_', '_')
+            cmd = (entry.get('command') or 'answer')
+            if isinstance(cmd, list):
+                cmd = cmd[0]
+            cmd = cmd.replace('\_', '_')
             summary = entry.get('summary', f'Invoking command {cmd}')
             content = entry.get('content', [])
             if not isinstance(content, list):
