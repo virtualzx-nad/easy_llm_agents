@@ -132,6 +132,8 @@ class FastChatModel(CompletionModel, max_tokens=2000):
         )
         conv.append_message(conv.roles[1], lead or None)
         prompt = conv.get_prompt()
+        if self.token_count(prompt) > self.max_tokens:
+            raise RuntimeError('Incoming prompt larger than token limit')
         if lead:
             prompt = prompt.rstrip(sep)
         if debug:
