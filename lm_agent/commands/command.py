@@ -1,5 +1,6 @@
 """Generic command class. An LLM can perform tasks by invoking commands, giving them some more agency"""
 import os
+import json
 from datetime import datetime
 
 from ..utils import SkipMissingDict
@@ -131,3 +132,9 @@ class Command(object):
         for filename, description in files.items():
             result += f'  {filename}: {description}\n'
         return result
+
+    def to_dict(self):
+        return {'notes': self.notes or [], 'command': self.command, 'summary': self.summary, 'content': self.content}
+
+    def to_json(self):
+        return json.dumps(self.to_dict(), indent=2)

@@ -86,31 +86,28 @@ class LMConversation(object):
             The text response from the AI
         """
         if isinstance(content, list):
-            if all(isinstance(item, dict) for item in content):
-                self.history.extend(content)
-                self.raw_history.extend(content)
-            else:
+            if not all(isinstance(item, dict) for item in content):
                 raise TypeError('If you suppply a list to talk, it has to be OpenAI message format')
-        else:
-            self.history.append({'role': as_role, 'content': content})
-            self.raw_history.append({'role': as_role, 'content': content})
+        elif isinstance(content, dict):
+            content = [content]
+        elif isinstance(content, str):
+            content = [{'role': as_role, 'content': content}]
         if system_prompt is None:
             system_prompt = self.system_prompt
             if self.user_persona:
                 system_prompt += '\nThe user talking to you is ' + self.user_persona
             if self.ai_persona:
                 system_prompt += '\nIn the entire conversation you act as ' + self.ai_persona + '\n Always speak in this role and never break character.\n'
-        previous = self.summary + self.history
+        previous = self.summary + self.history + content
         if footnote:
             previous += [{'role': 'system', 'content': footnote}]
         if header:
             system_prompt += '\n' + header
         self._last_content = previous               # for debug only
-        self._last_system_prompt = system_prompt    # for debug only
         self._last_header = header or ''
         self._last_footnote = str(footnote) or ''
-        self.summarize()
-        
+        self._last_system_prompt = system_prompt    # for debug only
+
         resp = self.model.get_completion(
             previous,
             system_prompt=system_prompt,
@@ -120,11 +117,12 @@ class LMConversation(object):
         )
         top_choice = resp['choices'][0]
         if top_choice['finish_reason'] == 'length' and raise_if_truncated:
-            self.history.pop()
             raise AnswerTruncated('Answer exceeded token limit')
         answer = top_choice['message']['content']
-        self.history.append({'role': 'assistant', 'content': answer})
-        self.raw_history.append({'role': 'assistant', 'content': answer})
+        content.append({'role': 'assistant', 'content': answer})
+        self.history.extend(content)
+        self.raw_history.extend(content)
+        self.summarize()
         return answer
 
     def to_dict(self):

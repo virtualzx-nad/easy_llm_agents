@@ -48,10 +48,10 @@ class SearchCommand(
     
     The AI sometimes provide multiple lines to intend to search multiple items at the same time.  We try and honor that
     """
-    config = {'model': None}
+    config = {'model': None, 'default_size': 3}
     def generate_prompt(self):
         searches = self.content
-        default_size = 3
+        default_size = self.config.get('default_size', 3)
         if not isinstance(searches, list):
             searches = [searches]
         keep = []
@@ -81,7 +81,7 @@ class SearchCommand(
         output = []
         titles = []
         for i, entry in enumerate(results):
-            urls = ', '.join(entry['links'])
+            urls = ', '.join(entry.get('links', []))
             output.append(f'{i+1}. {entry["title"]} [{urls}]\n{entry["content"]}')
             titles.append(entry['title'])
         result = '\n'.join(output) or 'No results. << Try to divide complex searches into many incremental ones. >>'
