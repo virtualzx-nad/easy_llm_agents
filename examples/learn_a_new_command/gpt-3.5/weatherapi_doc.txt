@@ -1,0 +1,351 @@
+The Forecast API provides a 14-day weather forecast. To use the API, developers need to sign up and obtain an API key under their account. The API access is protected by an API key, which needs to be passed as a request parameter through an API. The request URL consists of a base URL and an API method. The required parameter for the request is the API key, and the query parameter could be latitude and longitude, city name, US zip, UK postcode, Canada postal code, metar code, iata code, auto:ip IP lookup, or IP address.
+
+The Forecast API also allows for the optional use of parameters such as days (required only with forecast API method), dt (required for History and Future API), unixdt (optional), end_dt (available for History API), unixend_dt (optional), hour (optional), alerts (new), aqi (new), tides (new), tp (new), and lang.
+
+Air Quality data is returned in the Forecast API and Realtime API response. Depending upon your subscription plan we provide current and 3 day air quality data for the given location in json and xml.
+
+It provides air quality index (see below) data on major pollutant gases like Carbon monoxide (CO), Ozone (O3), Nitrogen dioxide (NO2), Sulphur dioxide (SO2), PM 2.5 and PM 10.
+
+By default air quality data is not returned. To get air quality data back in the response from Forecast API and Realtime API, pass the parameter aqi=yes.
+
+The Forecast API returns alerts and warnings issued by government agencies (USA, UK, Europe and Rest of the World) as an array if available for the location provided through the Forecast API. By default alerts are not returned.
+
+Forecast weather API method returns, depending upon your price plan level, upto next 14 day weather forecast and weather alert as json or xml. The data is returned as a Forecast Object.
+
+Forecast object contains astronomy data, day weather forecast and hourly interval weather information for a given city.
+
+History weather API method returns, depending upon your price plan level, historical weather for a date on or after 1st Jan, 2010 as json and xml. The data is returned as a Forecast Object.
+
+Marine weather API method returns upto next 7 day (depending upon your price plan level) marine and sailing weather forecast and tide data (depending upon your price plan level) as json or xml. The data is returned as a Marine Object.
+
+Marine object, depending upon your price plan level, contains astronomy data, day weather forecast and hourly interval weather information and tide data for a given sea/ocean point.
+
+Future weather API method returns weather in a 3 hourly interval in future for a date between 14 days and 300 days from today in the future.
+
+forecastday: Parent element
+
+                            forecastday -> day: 'day' element inside forecastday contains max/min
+                    temperature, average temperature
+
+                            forecastday -> astro
+
+                            forecastday -> hour:
+
+Forecastday
+
+Parent element
+
+forecastday -> day
+
+day element contains:
+
+Max, min and average temperature
+
+Max wind speed
+
+Total precipitation
+
+Day weather condition
+
+forecastday -> astro
+
+astro element contains sunrise, sunset, moonrise and moonset data
+
+forecastday -> hour
+
+hour element contains hour by hour weather forecast
+                                information
+
+forecastday
+
+Field
+
+Data Type
+
+Description
+
+date
+
+string
+
+Forecast date
+
+date_epoch
+
+int
+
+Forecast date as unix time.
+
+day
+
+element
+
+See day element
+
+astro
+
+element
+
+See astro element
+
+hour
+
+element
+
+See hour element
+
+day Element
+
+Field
+
+Data Type
+
+Description
+
+maxtemp_c
+
+decimal
+
+Maximum temperature in celsius for the day.
+
+maxtemp_f
+
+decimal
+
+Maximum temperature in fahrenheit for the day
+
+mintemp_c
+
+decimal
+
+Minimum temperature in celsius for the day
+
+mintemp_f
+
+decimal
+
+Minimum temperature in fahrenheit for the day
+
+avgtemp_c
+
+decimal
+
+Average temperature in celsius for the day
+
+avgtemp_f
+
+decimal
+
+Average temperature in fahrenheit for the day
+
+maxwind_mph
+
+decimal
+
+Maximum wind speed in miles per hour
+
+maxwind_kph
+
+decimal
+
+Maximum wind speed in kilometer per hour
+
+totalprecip_mm
+
+decimal
+
+Total precipitation in milimeter
+
+totalprecip_in
+
+decimal
+
+Total precipitation in inches
+
+avgvis_km
+
+decimal
+
+Average visibility in kilometer
+
+avgvis_miles
+
+decimal
+
+Average visibility in miles
+
+avghumidity
+
+int
+
+Average humidity as percentage
+
+condition:text
+
+string
+
+Weather condition text
+
+condition:icon
+
+string
+
+Weather condition icon
+
+condition:code
+
+int
+
+Weather condition code
+
+uv
+
+decimal
+
+UV Index
+
+astro Element
+
+Field
+
+Data Type
+
+Description
+
+sunrise
+
+string
+
+Sunrise time
+
+sunset
+
+string
+
+Sunset time
+
+moonrise
+
+string
+
+Moonrise time
+
+moonset
+
+string
+
+Moonset time
+
+moon_phase
+
+string
+
+Moon phases. Value returned:
+
+New Moon
+
+Waxing Crescent
+
+First Quarter
+
+Waxing Gibbous
+
+Full Moon
+
+Waning Gibbous
+
+Last Quarter
+
+Waning Crescent
+
+moon_illumination
+
+decimal
+
+Moon illumination as %
+
+hour Element
+
+Field
+
+Data Type
+
+Description
+
+time_epoch
+
+int
+
+Time as epoch
+
+time
+
+string
+
+Date and time
+
+temp_c
+
+decimal
+
+Temperature in celsius
+
+temp_f
+
+decimal
+
+Temperature in fahrenheit
+
+condition:text
+
+string
+
+Weather condition text
+
+condition:icon
+
+string
+
+Weather condition icon
+
+condition:code
+
+int
+
+Weather condition code
+
+wind_mph
+
+decimal
+
+Maximum wind speed in miles per hour
+
+wind_kph
+
+decimal
+
+Maximum wind speed in kilometer per hour
+
+wind_degree
+
+int
+
+Wind direction
+Description
+
+stadium
+
+string
+
+Name of stadium
+
+country
+
+int
+
+Country
+
+region
+
+string
+

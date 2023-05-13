@@ -1,0 +1,49 @@
+Top 6 best free weather APIs for 2023:
+1. WeatherAPI.com
+2. Forecast
+3. Meteostat
+4. Weather Embed
+5. Weather by API – Ninjas
+6. Visual Crossing Weather
+
+Weather APIs are used in a wide range of applications such as online news outlets providing local weather reports, travel websites showing an overview of the current conditions in each destination country, home automation systems monitoring temperature trends for more efficient energy use, and smartphone apps helping people plan their outdoor activities according to the most recent forecast.
+
+Most weather APIs offer a comprehensive set of features allowing developers to customize their application’s behavior based on user preferences or past usage patterns. This makes it easier for them to launch timely updates when needed while also offering great flexibility when building innovative ways to interact with the weather data collected by the API service provider.
+
+Weather APIs also provide other useful benefits such as improved accuracy due to ongoing quality assurance processes, easy integration with popular development environments, scalability, reliability, detailed documentation, and last but certainly not least – affordability thanks to generous free plans offered by some providers.
+
+This blog post highlights several of the most popular FREE weather APIs on the Rapid API Hub developers use to build innovative web and mobile weather applications.
+
+All of the weather APIs highlighted in this post have a free or limited free plan (freemium) available, providing an opportunity to try them out to see which is the best for your application.
+
+How to use Weather APIs:
+To get started with these weather APIs, first sign up for a free account on RapidAPI. Check out RapidAPI FAQs.
+
+Weather API SDKs:
+All weather APIs on the Rapid API Hub are available in: NodeJS, PHP, Python, Ruby, Objective-C, Java (Android), C# (.NET), cURL, go, Elixir, Javascript and produce JSON (and sometimes XML) responses. 
+
+How to use Weather APIs in a website:
+There are multiple possibilities on how to integrate weather API data into your website.
+
+A couple of examples include: showing the current weather for a specific region, showing the weather forecast for a specific region, create charts based on different weather metadata.
+
+Are there any Weather APIs that provide UV Index?
+For APIs that provide UV Index, check out OpenUV.
+
+How do I find my AccuWeather API key?
+Click “My Apps” in the main menu. Click the “Add a new App” button. Enter the required information and click the “Create App” button. The new App will be active immediately. Click on the App name to view your API Key and details about your App. Copy your API Key and paste it in the “API Key” section of the RapidAPI AccuWeather API Page. 
+
+Steps to use a weather API:
+1. Find a weather API
+2. Sign up for a free RapidAPI account
+3. Subscribe to a plan
+4. Test the endpoints
+5. Copy the code snippet
+
+Weather Data Feeds:
+National Weather Service XML Feeds, Weather.gov RSS Feeds, Weather by Zip Code / Location.
+
+API Tutorials:
+Learn to use weather API’s using these tutorials from Python and JavaScript: Weather API Python, Weather API Python Django, Weather API JavaScript (Node.js), Historical Weather Data.
+
+What do you think is the best weather API? Which APIs are we missing? When you search weather APIs, what do you expect to see? Which weather company would you like an API for? Let us know in the comments below!

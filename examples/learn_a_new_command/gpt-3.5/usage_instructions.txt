@@ -1,0 +1,21 @@
+To use the `get_coordinates` function in Python, you need to follow these steps:
+
+1. Firstly, you need to save the `get_coordinates.py` file on your computer.
+
+2. Import the `get_coordinates` function from the `get_coordinates` module using the following code:
+
+   `from get_coordinates import get_coordinates`
+
+3. Call the `get_coordinates` function with a location as an argument:
+
+   `location = 'Paris'`
+   
+   `coordinates = get_coordinates(location)`
+
+4. The function will return a tuple containing the latitude and longitude coordinates for the location specified in the input.
+
+5. If the function is unable to retrieve the coordinates, it will return `None`.
+
+6. Before using the function, you must obtain an API key from positionstack and replace `YOUR_API_KEY` in the `get_coordinates.py` script with your actual API key.
+
+Note: Make sure that you have an active internet connection while running this code.

@@ -1,0 +1,72 @@
+The One Call API provides weather data for any geographical coordinate. It offers current weather, minute forecast for 1 hour, hourly forecast for 48 hours, daily forecast for 7 days, national weather alerts, and historical weather data for the previous 5 days. To make an API call, users need to provide the geographical coordinates (latitude, longitude) and their unique API key. Users can also exclude some parts of the weather data from the API response by using the "exclude" parameter and choose the units of measurement with the "units" parameter. The API response can be returned in different languages using the "lang" parameter.
+
+Fields in API response:
+
+- lat: Geographical coordinates of the location (latitude)
+- lon: Geographical coordinates of the location (longitude)
+- timezone: Timezone name for the requested location
+- timezone_offset: Shift in seconds from UTC
+
+Current weather data API response:
+
+- current.dt: Current time, Unix, UTC
+- current.sunrise: Sunrise time, Unix, UTC
+- current.sunset: Sunset time, Unix, UTC
+- current.temp: Temperature. Units - default: kelvin, metric: Celsius, imperial: Fahrenheit. How to change units used
+- current.feels_like: Temperature. This temperature parameter accounts for the human perception of weather. Units – default: kelvin, metric: Celsius, imperial: Fahrenheit.
+- current.pressure: Atmospheric pressure on the sea level, hPa
+- current.humidity: Humidity, %
+- current.dew_point: Atmospheric temperature (varying according to pressure and humidity) below which water droplets begin to condense and dew can form. Units – default: kelvin, metric: Celsius, imperial: Fahrenheit.
+- current.clouds: Cloudiness, %
+- current.uvi: Current UV index
+- current.visibility: Average visibility, metres. The maximum value of the visibility is 10km
+- current.wind_speed: Wind speed. Units – default: metre/sec, metric: metre/sec, imperial: miles/hour. How to change units used
+- current.wind_gust (where available): Wind gust. Units – default: metre/sec, metric: metre/sec, imperial: miles/hour. How to change units used
+- current.wind_deg: Wind direction, degrees (meteorological)
+- current.rain: Rain, mm/h
+- current.rain.1h (where available): Rain, mm/h
+- current.snow: Precipitation, mm/h
+- current.snow.1h (where available): Precipitation, mm/h
+- current.weather.id: Weather condition id
+- current.weather.main: Group of weather parameters (Rain, Snow, Extreme etc.)
+- current.weather.description: Weather condition within the group (full list of weather conditions). Get the output in your language
+- current.weather.icon: Weather icon id. How to get icons
+
+Minute forecast weather data API response:
+
+- minutely.dt: Time of the forecasted data, unix, UTC
+- minutely.precipitation: Precipitation, mm/h
+
+Hourly forecast weather data API response:
+
+- hourly.dt: Time of the forecasted data, Unix, UTC
+- hourly.temp: Temperature. Units – default: kelvin, metric: Celsius, imperial: Fahrenheit. How to change units used
+- hourly.feels_like: Temperature. This accounts for the human perception of weather. Units – default: kelvin, metric: Celsius, imperial: Fahrenheit.
+- hourly.pressure: Atmospheric pressure on the sea level, hPa
+- hourly.humidity: Humidity, %
+- hourly.dew_point: Atmospheric temperature (varying according to pressure and humidity) below which water droplets begin to condense and dew can form. Units – default: kelvin, metric: Celsius, imperial: Fahrenheit.
+- hourly.uvi: UV index
+- hourly.clouds: Cloudiness, %
+- hourly.visibility: Average visibility, metres. The maximum value of the visibility is 10km
+- hourly.wind_speed: Wind speed. Units – default: metre/sec, metric: metre/sec, imperial: miles/hour. How to change units used
+- hourly.wind_gust (where available): Wind gust. Units – default: metre/sec, metric: metre/sec, imperial: miles/hour. How to change units used
+- chourly.wind_deg: Wind direction, degrees (meteorological)
+- hourly.pop: Probability of precipitation. The values of the parameter vary between 0 and 1, where 0 is equal to 0%, 1 is equal to 100%
+- hourly.rain: Rain, mm/h
+- hourly.rain.1h (where available): Rain, mm/h
+- hourly.snow: Precipitation, mm/h
+- hourly.snow.1h (where available): Precipitation, mm/h
+- hourly.weather.id: Weather condition id
+- hourly.weather.main: Group of weather parameters (Rain, Snow, Extreme etc.)
+- hourly.weather.description: Weather condition within the group (full list of weather conditions). Get the output in your language
+- hourly.weather.icon: Weather icon id. How to get icons
+
+Daily forecast weather data API response:
+
+- daily.dt: Time of the forecasted data, Unix, UTC
+- daily.sunrise: Sunrise time, Unix, UTC
+- daily.sunset: Sunset time, Unix, UTC
+- daily.moonrise: Moonrise time, Unix, UTC
+- daily.moonset: Moonset time, Unix, UTC
+- daily.moon_phase: Moon phase (0 and 1 are new moon, 0.25 is first quarter moon, 0.5 is full moon, and 0.75 is last quarter moon)
+- daily.temp.day: Day temperature. Units – default: kelvin, metric: Celsius, imperial: Fahrenheit. How to change
