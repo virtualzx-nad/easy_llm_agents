@@ -1,7 +1,7 @@
 # easy_llm_agent
 
 
-# Basic philosophy
+## Basic philosophy
 The basic goal is to make this package as easy to extend as a programmer as possible. 
 To this end, 
 
@@ -80,3 +80,11 @@ These correspond to the actual command that you issue like this
 ```
 
 
+## Examples
+
+Here we perform a series of increasingly difficult tasks with Vicuna, GPT-3.5 and GPT-4 and observe their success. 
+In general, models are given tools to reason, perform Google search, read pages or file, run Python script, compose files, or answer to the user. 
+To overcome token limits, they are also allowed to delegate subtasks to the same LLM. 
+Full conversation history was given as context, until they are very old or the context limit was reached, at which point older exchanges are summarized and replaced with a summary.
+
+Detailed analysis [can be found in this document](./examples/examples_details.md).
