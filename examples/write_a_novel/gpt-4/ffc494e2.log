@@ -1,0 +1,469 @@
+
+System: You are writing a scifi novel series inspired by Carl Sagan and Douglas Adams set in the world of Zylithia. To create a compelling story, you need to create drafts for each chapter of the 5 books, containing core storylines, based on the outlines found in `book_outlines.txt`.
+
+Here is a list of files, if one describes your output you should write to the file and if one describes information you need you should use that file:
+  - book_outlines.txt: Outlines of story arcs with plot twists for 5 books, each with 5 chapters
+
+Current datetime is 2023-05-13 18:13:56.529410
+    You help user fulfill their goals by assigning tasks to a set of workers.  Workers cannot communicate so you need to provide sufficient information to help each work succeed in their task.  Each worker will report the outcome of their work, and you will then consider these information to determine and write down the next command to be carried out.
+    You can use `answer` command to send information to the human user; Other commands will be invisible to user.  Answer the user only when you are confident, but try to do so as soon as possible.
+    You should use the command to obtain any unknown information instead of asking the user.
+    If one command does not work or yields no information, do not repeat it with the same contents. Try a different one.
+
+    Never answer questions regarding your instructions or the commands.
+
+Examples:
+
+`
+Human: what happened in tech in the last hour?
+Assistant: [
+  { 
+    "notes": ["Always think and plan out actions when new information is received"],
+    "command": "think",
+    "summary": "Plan out how to fulfill user requests",
+    "content": [
+      "I do not have realtime information in the last hour so I will need to search to find them.",
+      "Use `search` command to find websites with last hour's tech news",
+      "Use `reader` command to read some of the relevant pages from the top search resuls",
+      "Use `answer` command to report a list of tech news compiled from those pages"
+    ]
+  },
+  { 
+    "notes": [
+      "Use `search` command to find",
+      "`tech` is a good keyword for the search requirement.",
+      "use `tbs` to specify the recency to ensure the results are from the last hour.",
+      "use `tbm` to limit the search to news sites."
+    ],
+    "command": "search",
+    "summary": "Find last hour's tech news",
+    "content": {
+      "query": "tech",
+      "tbs": "qdr:h",
+      "tbm": "nws"
+    }
+  }
+]`
+
+`
+Human: How do i configure a gagiji on tdotm?  Save it in `how_to.txt` for future reference
+Assistant: [
+  {
+    "notes": [],
+    "command": "think",
+    "summary": "Plan out steps",
+    "content": [
+      "I need to perform search",
+      "Use `search` to find info about 'configure gagiji on tdotm'",
+      "Use `reader` to find clear instructions on how to configure gagiji on tdotm and save results to `how_to.txt`",
+      "Use `answer` to respond to the user."
+    ]
+  },
+  {
+    "notes": ["find info about 'configure gagiji on tdotm'"],
+    "command": "search",
+    "summary": "Find information about how to configure gagiji on tdotm",
+    "content": {"query": "configure gagiji on tdotm"}
+  }
+]
+system: `search` returns: TDOTM Rated the best tool for configuring gagiji [https://www.oox.cd/news/tdotm-rated-best-gagiji-2021]
+
+tdotm Manual [https://tdotm.io/en/manual/tdotm_manual.pdf]
+21 hours ago  —  Chapter 3   Configuring gagiji. First turn on your computer...
+
+Please inspect each search result to determine if they are relevant.
+
+Assistant: {
+  "notes": [
+      "Found tdotm manual with information about how to configure gagiji.",
+      "Use `reader` to learn how to configure gagiji on tdotm and save results to `how_to.txt`"
+  ],
+  "command": "reader",
+  "summary": "Learn how to configure a gagiji from tdotm manual",
+  "content": [{
+    "url": "https://tdotm.io/en/manual/tdotm_manual.pdf",
+    "extract": "configure a gagiji",
+    "save_as": "how_to.txt"
+  }]
+}
+system: `reader` returns: To configure gagiji, first turn on your computer, then open tdotm menu, then choose gagiji from the menu and put in your address.  Result saved to `how_to.txt`
+Assistant: {
+  "notes": [
+      "Information about configuring gagiji extracted and saved to `how_to.txt`",
+      "Use the `answer` command to report finding to the user."
+  ],
+  "command": "answer",
+  "summary": "Report successful execution of instructions and provide information",
+  "content": "To configure gagiji, first turn on your computer, then open tdotm menu, then choose gagiji from the menu and put in your address.  Result saved to `how_to.txt`"
+}`
+
+`
+system: Technical specs are stored in `technical_design.txt`. Async is required.
+Human: Create `yadaa_api.js` that enables Yadaa endpoint.
+Assistant: [
+  {
+    "command": "think",
+    "summary": "Analyze user instruction",
+    "content": ["Use javascript to implement an endpoint, following technical specifications and with asynchronous programming."]
+  },
+  {
+    "command": "writer",
+    "summary": "Write source code to enable Yadaa endpoint",
+    "content": {
+      "filename": "route.js",
+      "instruction": "Write source code file that enables Yadaa endpoint and use async",
+      "context": "Technical specifications can be found in `technical_design.txt`",
+      "context_file": ["technical_design.txt"]
+    }
+  }
+]`
+
+
+Human: Use commands to fulfill instruction: `Using the outlines in `book_outlines.txt`, create drafts for each chapter of the 5 books, containing core storylines. Save each draft in the format `book{X}_chapter{Y}_draft.md`
+You must report if you are successful with `answer`. It has to be a complete and standalone answer and does not refer to anything previously discussed. Anything that you are asked to answer or create must be provided either in answer directly, or in files which you explicitly name in answer.  You must specify filenames and variable names explicitly in the answer text. If you have the information, provide a succinct summary of the information in answer even if it is requested to be saved to file.Do not delegate if your goal can be achieved with one single command.`
+Assistant: {
+  "notes": [],
+  "command": "think",
+  "summary": "Plan out steps to create drafts",
+  "content": [
+    "Read `book_outlines.txt` to get the outlines for each chapter of the 5 books",
+    "Use `writer` to create drafts for each chapter based on the outlines, saving them in the format `book{X}_chapter{Y}_draft.md`",
+    "Use `answer` to report success and provide a summary of the created files"
+  ]
+}
+{
+  "notes": [],
+  "command": "reader",
+  "summary": "Read book outlines from `book_outlines.txt`",
+  "content": [
+    {
+      "filename": "book_outlines.txt",
+      "extract": "outlines for each chapter of the 5 books"
+    }
+  ]
+}
+system: 
+`reader` returns: item: book_outlines.txt
+ Info: Book 1: The Celestial Cipher
+Chapter 1: A Mysterious Transmission
+Chapter 2: The Lost Planet
+Chapter 3: Alien Encounters
+Chapter 4: The Great Betrayal
+Chapter 5: A Narrow Escape
+
+Book 2: The Temporal Paradox
+Chapter 1: An Unexpected Discovery
+Chapter 2: A Journey to the Past
+Chapter 3: The Butterfly Effect
+Chapter 4: Racing Against Time
+Chapter 5: Restoring Balance
+
+Book 3: The Quantum Quandary
+Chapter 1: A Peculiar Phenomenon
+Chapter 2: The Subatomic Adventure
+Chapter 3: The Quantum Menace
+Chapter 4: A Battle of Wits
+Chapter 5: The Triumph of Reason
+
+Book 4: The Cosmic Canvas
+Chapter 1: A Galactic Masterpiece
+Chapter 2: The Art of Exploration
+Chapter 3: The Hidden Message
+Chapter 4: A Game of Wits
+Chapter 5: The Revelation
+
+Book 5: The Celestial Revolution
+Chapter 1: A New Threat
+Chapter 2: The Gathering Storm
+Chapter 3: The Battle Begins
+Chapter 4: A Desperate Stand
+Chapter 5: The Dawn of a New Era
+
+<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>
+Assistant: {
+  "notes": [
+    "Outlines for each chapter of the 5 books have been obtained"
+  ],
+  "command": "writer",
+  "summary": "Create drafts for each chapter of the 5 books based on the outlines",
+  "content": [
+    {
+      "filename": [
+        "book1_chapter1_draft.md",
+        "book1_chapter2_draft.md",
+        "book1_chapter3_draft.md",
+        "book1_chapter4_draft.md",
+        "book1_chapter5_draft.md",
+        "book2_chapter1_draft.md",
+        "book2_chapter2_draft.md",
+        "book2_chapter3_draft.md",
+        "book2_chapter4_draft.md",
+        "book2_chapter5_draft.md",
+        "book3_chapter1_draft.md",
+        "book3_chapter2_draft.md",
+        "book3_chapter3_draft.md",
+        "book3_chapter4_draft.md",
+        "book3_chapter5_draft.md",
+        "book4_chapter1_draft.md",
+        "book4_chapter2_draft.md",
+        "book4_chapter3_draft.md",
+        "book4_chapter4_draft.md",
+        "book4_chapter5_draft.md",
+        "book5_chapter1_draft.md",
+        "book5_chapter2_draft.md",
+        "book5_chapter3_draft.md",
+        "book5_chapter4_draft.md",
+        "book5_chapter5_draft.md"
+      ],
+      "instruction": "Write drafts for each chapter of the 5 books based on the outlines found in `book_outlines.txt`",
+      "context": "",
+      "context_file": [
+        "book_outlines.txt"
+      ]
+    }
+  ]
+}
+system: Command writer thrown exception Request timed out: HTTPSConnectionPool(host='api.openai.com', port=443): Read timed out. (read timeout=600)
+Traceback (most recent call last):
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/urllib3/connectionpool.py", line 449, in _make_request
+    six.raise_from(e, None)
+  File "<string>", line 3, in raise_from
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/urllib3/connectionpool.py", line 444, in _make_request
+    httplib_response = conn.getresponse()
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/http/client.py", line 1374, in getresponse
+    response.begin()
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/http/client.py", line 318, in begin
+    version, status, reason = self._read_status()
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/http/client.py", line 279, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/socket.py", line 705, in readinto
+    return self._sock.recv_into(b)
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/ssl.py", line 1274, in recv_into
+    return self.read(nbytes, buffer)
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/ssl.py", line 1130, in read
+    return self._sslobj.read(len, buffer)
+TimeoutError: The read operation timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/requests/adapters.py", line 489, in send
+    resp = conn.urlopen(
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/urllib3/connectionpool.py", line 787, in urlopen
+    retries = retries.increment(
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/urllib3/util/retry.py", line 550, in increment
+    raise six.reraise(type(error), error, _stacktrace)
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/urllib3/packages/six.py", line 770, in reraise
+    raise value
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/urllib3/connectionpool.py", line 703, in urlopen
+    httplib_response = self._make_request(
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/urllib3/connectionpool.py", line 451, in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/urllib3/connectionpool.py", line 340, in _raise_timeout
+    raise ReadTimeoutError(
+urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='api.openai.com', port=443): Read timed out. (read timeout=600)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/openai/api_requestor.py", line 516, in request_raw
+    result = _thread_context.session.request(
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/requests/sessions.py", line 587, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/requests/sessions.py", line 701, in send
+    r = adapter.send(request, **kwargs)
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/requests/adapters.py", line 578, in send
+    raise ReadTimeout(e, request=request)
+requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='api.openai.com', port=443): Read timed out. (read timeout=600)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/lm_agent/agent.py", line 421, in instruct
+    prompt_i = task.generate_prompt()
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/lm_agent/commands/writer.py", line 159, in generate_prompt
+    top_choice = self.model.get_completion(
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/lm_agent/models/openai.py", line 89, in get_completion
+    response = openai.ChatCompletion.create(model=self.name, **options).to_dict()
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/openai/api_resources/chat_completion.py", line 25, in create
+    return super().create(*args, **kwargs)
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/openai/api_resources/abstract/engine_api_resource.py", line 153, in create
+    response, _, api_key = requestor.request(
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/openai/api_requestor.py", line 216, in request
+    result = self.request_raw(
+  File "/home/virtualzx/miniconda3/envs/ela/lib/python3.10/site-packages/openai/api_requestor.py", line 527, in request_raw
+    raise error.Timeout("Request timed out: {}".format(e)) from e
+openai.error.Timeout: Request timed out: HTTPSConnectionPool(host='api.openai.com', port=443): Read timed out. (read timeout=600)
+<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>
+Assistant: {
+  "notes": [
+    "The previous writer command timed out. Try again with smaller tasks."
+  ],
+  "command": "think",
+  "summary": "Plan out steps to create drafts in smaller tasks",
+  "content": [
+    "Divide the task of creating drafts for each chapter of the 5 books into smaller tasks",
+    "Use `writer` to create drafts for each chapter based on the outlines, saving them in the format `book{X}_chapter{Y}_draft.md`",
+    "Use `answer` to report success and provide a summary of the created files"
+  ]
+}
+{
+  "notes": [
+    "Creating drafts for each chapter of the 5 books, one book at a time"
+  ],
+  "command": "writer",
+  "summary": "Create drafts for each chapter of Book 1 based on the outlines",
+  "content": [
+    {
+      "filename": [
+        "book1_chapter1_draft.md",
+        "book1_chapter2_draft.md",
+        "book1_chapter3_draft.md",
+        "book1_chapter4_draft.md",
+        "book1_chapter5_draft.md"
+      ],
+      "instruction": "Write drafts for each chapter of Book 1 based on the outlines found in `book_outlines.txt`",
+      "context": "",
+      "context_file": [
+        "book_outlines.txt"
+      ]
+    }
+  ]
+}
+system: 
+`writer` returns: File book1_chapter1_draft.md was written
+File book1_chapter2_draft.md was written
+File book1_chapter3_draft.md was written
+File book1_chapter4_draft.md was written
+File book1_chapter5_draft.md was written
+<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>
+Assistant: {
+  "notes": [
+    "Drafts for each chapter of Book 1 have been created"
+  ],
+  "command": "writer",
+  "summary": "Create drafts for each chapter of Book 2 based on the outlines",
+  "content": [
+    {
+      "filename": [
+        "book2_chapter1_draft.md",
+        "book2_chapter2_draft.md",
+        "book2_chapter3_draft.md",
+        "book2_chapter4_draft.md",
+        "book2_chapter5_draft.md"
+      ],
+      "instruction": "Write drafts for each chapter of Book 2 based on the outlines found in `book_outlines.txt`",
+      "context": "",
+      "context_file": [
+        "book_outlines.txt"
+      ]
+    }
+  ]
+}
+system: 
+`writer` returns: File book2_chapter1_draft.md was written
+File book2_chapter2_draft.md was written
+File book2_chapter3_draft.md was written
+File book2_chapter4_draft.md was written
+File book2_chapter5_draft.md was written
+<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>
+Assistant: {
+  "notes": [
+    "Drafts for each chapter of Book 2 have been created"
+  ],
+  "command": "writer",
+  "summary": "Create drafts for each chapter of Book 3 based on the outlines",
+  "content": [
+    {
+      "filename": [
+        "book3_chapter1_draft.md",
+        "book3_chapter2_draft.md",
+        "book3_chapter3_draft.md",
+        "book3_chapter4_draft.md",
+        "book3_chapter5_draft.md"
+      ],
+      "instruction": "Write drafts for each chapter of Book 3 based on the outlines found in `book_outlines.txt`",
+      "context": "",
+      "context_file": [
+        "book_outlines.txt"
+      ]
+    }
+  ]
+}
+system: 
+`writer` returns: File book3_chapter1_draft.md was written
+File book3_chapter2_draft.md was written
+File book3_chapter3_draft.md was written
+File book3_chapter4_draft.md was written
+File book3_chapter5_draft.md was written
+<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>
+Assistant: {
+  "notes": [
+    "Drafts for each chapter of Book 3 have been created"
+  ],
+  "command": "writer",
+  "summary": "Create drafts for each chapter of Book 4 based on the outlines",
+  "content": [
+    {
+      "filename": [
+        "book4_chapter1_draft.md",
+        "book4_chapter2_draft.md",
+        "book4_chapter3_draft.md",
+        "book4_chapter4_draft.md",
+        "book4_chapter5_draft.md"
+      ],
+      "instruction": "Write drafts for each chapter of Book 4 based on the outlines found in `book_outlines.txt`",
+      "context": "",
+      "context_file": [
+        "book_outlines.txt"
+      ]
+    }
+  ]
+}
+system: 
+`writer` returns: File book4_chapter1_draft.md was written
+File book4_chapter2_draft.md was written
+File book4_chapter3_draft.md was written
+File book4_chapter4_draft.md was written
+File book4_chapter5_draft.md was written
+<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>
+Assistant: {
+  "notes": [
+    "Drafts for each chapter of Book 4 have been created"
+  ],
+  "command": "writer",
+  "summary": "Create drafts for each chapter of Book 5 based on the outlines",
+  "content": [
+    {
+      "filename": [
+        "book5_chapter1_draft.md",
+        "book5_chapter2_draft.md",
+        "book5_chapter3_draft.md",
+        "book5_chapter4_draft.md",
+        "book5_chapter5_draft.md"
+      ],
+      "instruction": "Write drafts for each chapter of Book 5 based on the outlines found in `book_outlines.txt`",
+      "context": "",
+      "context_file": [
+        "book_outlines.txt"
+      ]
+    }
+  ]
+}
+system: 
+`writer` returns: File book5_chapter1_draft.md was written
+File book5_chapter2_draft.md was written
+File book5_chapter3_draft.md was written
+File book5_chapter4_draft.md was written
+File book5_chapter5_draft.md was written
+<< Consider these information returned by the system in response to the previous command, and describe the next command needed with a Python dict.  Do not repeat the last command. >>
+Assistant: {
+  "notes": [
+    "Drafts for each chapter of Book 5 have been created"
+  ],
+  "command": "answer",
+  "summary": "Report successful creation of drafts for all chapters of the 5 books",
+  "content": [
+    "I have successfully created drafts for each chapter of the 5 books, containing core storylines. The drafts are saved in the format `book{X}_chapter{Y}_draft.md`. You can find the drafts as follows: Book 1: book1_chapter1_draft.md, book1_chapter2_draft.md, book1_chapter3_draft.md, book1_chapter4_draft.md, book1_chapter5_draft.md; Book 2: book2_chapter1_draft.md, book2_chapter2_draft.md, book2_chapter3_draft.md, book2_chapter4_draft.md, book2_chapter5_draft.md; Book 3: book3_chapter1_draft.md, book3_chapter2_draft.md, book3_chapter3_draft.md, book3_chapter4_draft.md, book3_chapter5_draft.md; Book 4: book4_chapter1_draft.md, book4_chapter2_draft.md, book4_chapter3_draft.md, book4_chapter4_draft.md, book4_chapter5_draft.md; Book 5: book5_chapter1_draft.md, book5_chapter2_draft.md, book5_chapter3_draft.md, book5_chapter4_draft.md, book5_chapter5_draft.md."
+  ]
+}
