@@ -45,6 +45,7 @@ class WriterCommand(
         'model': None,
         'summarization_model': 'gpt-3.5-turbo',
         'temperature': 0.7,
+        'context_limit': 2000,   # if context file is larger than this, will be summarized
     }
     def generate_prompt(self):
         if not isinstance(self.content, list):
@@ -92,7 +93,7 @@ class WriterCommand(
                 try:
                     with open(context_fname) as f:
                         text = f.read()
-                        if self.model.token_count(text) > 1000:
+                        if self.model.token_count(text) > self.config.get('context_limit', 2000):
                             text = summarize_text(text, 'preserve any important details')
                         context += f'\nContent of {context_fname}:\n```{text}```\n'
                 except Exception as e:
